@@ -9,6 +9,7 @@
     xmlns:local="clr-namespace:Pic2PixelStylet.Pages"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:s="https://github.com/canton7/Stylet"
+    xmlns:validation="clr-namespace:Pic2PixelStylet.ValidationRules"
     Title="图片像素化"
     Width="800"
     Height="450"
@@ -16,6 +17,30 @@
     mc:Ignorable="d">
     <Window.Resources>
         <converters:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter" />
+        <Style TargetType="GroupBox">
+            <Setter Property="SnapsToDevicePixels" Value="True" />
+            <Setter Property="Margin" Value="3" />
+            <Setter Property="Padding" Value="3" />
+            <Setter Property="Header" Value="" />
+            <Setter Property="BorderBrush" Value="{DynamicResource ControlElevationBorderBrush}" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="GroupBox">
+                        <Grid>
+                            <Rectangle
+                                Fill="{TemplateBinding Background}"
+                                Stroke="{TemplateBinding BorderBrush}"
+                                StrokeDashArray="4 2"
+                                StrokeThickness="{TemplateBinding BorderThickness}" />
+                            <Border Padding="{TemplateBinding Padding}">
+                                <ContentPresenter Margin="{TemplateBinding Padding}" />
+                            </Border>
+                        </Grid>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
     </Window.Resources>
     <i:Interaction.Behaviors>
         <behaviors:ImageDragDropBehavior x:Name="ImageDragDropBehavior" ImagePath="{Binding ImagePath, Mode=OneWayToSource}" />
@@ -23,8 +48,8 @@
     <Grid>
         <Grid>
             <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="5*" />
                 <ColumnDefinition Width="*" />
-                <ColumnDefinition Width="auto" />
             </Grid.ColumnDefinitions>
             <Grid Grid.Column="0">
                 <Canvas
@@ -63,76 +88,125 @@
                     </Path.Data>
                 </Path>
             </Grid>
-            <Border
-                Grid.Column="1"
-                Padding="5"
-                Background="{DynamicResource CardBackgroundFillColorDefaultBrush}">
-                <StackPanel Orientation="Vertical">
-                    <TextBlock Margin="0,5" HorizontalAlignment="Left">
-                        <Run>放大比:</Run>
-                        <Run Text="{Binding ScaleFactor, Mode=OneWay, StringFormat=F2}" />
-                    </TextBlock>
-                    <UniformGrid
-                        Margin="0,5"
-                        HorizontalAlignment="Stretch"
-                        Columns="2"
-                        Rows="1">
-                        <TextBlock HorizontalAlignment="Right">宽度(像素)：</TextBlock>
-                        <TextBox HorizontalAlignment="Stretch" Text="{Binding PixelCols, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}" />
-                    </UniformGrid>
-                    <UniformGrid
-                        Margin="0,5"
-                        HorizontalAlignment="Stretch"
-                        Columns="2"
-                        Rows="1">
-                        <TextBlock HorizontalAlignment="Right">高度(像素)：</TextBlock>
-                        <TextBox HorizontalAlignment="Stretch" Text="{Binding PixelRows, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}" />
-                    </UniformGrid>
-                    <Grid Margin="0,5" HorizontalAlignment="Stretch">
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="auto" />
-                            <RowDefinition Height="auto" />
-                        </Grid.RowDefinitions>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*" />
-                            <ColumnDefinition Width="auto" />
-                        </Grid.ColumnDefinitions>
-                        <TextBlock
-                            Grid.Row="0"
-                            Grid.Column="0"
-                            Grid.ColumnSpan="2"
-                            HorizontalAlignment="Left">
-                            阈值(0~255)：
+            <ScrollViewer Grid.Column="1">
+                <Border Padding="5" Background="{DynamicResource CardBackgroundFillColorDefaultBrush}">
+                    <StackPanel Orientation="Vertical">
+                        <TextBlock Margin="0,5" HorizontalAlignment="Left">
+                            <Run>放大比:</Run>
+                            <Run Text="{Binding ScaleFactor, Mode=OneWay, StringFormat=F2}" />
                         </TextBlock>
-                        <Slider
-                            Grid.Row="1"
-                            Grid.Column="0"
-                            Maximum="255"
-                            Minimum="0"
-                            Value="{Binding Threshold, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
-                        <TextBox
-                            Grid.Row="1"
-                            Grid.Column="1"
-                            MinWidth="20"
-                            HorizontalAlignment="Stretch"
-                            Text="{Binding Threshold, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
-                        <Rectangle
-                            Grid.Row="0"
-                            Grid.RowSpan="2"
-                            Grid.Column="0"
-                            Grid.ColumnSpan="2"
-                            Stroke="{DynamicResource ControlElevationBorderBrush}"
-                            StrokeDashArray="4 2"
-                            StrokeThickness="0.5" />
-                    </Grid>
-                    <Button
-                        Margin="0,5"
-                        Padding="10,5"
-                        HorizontalAlignment="Center"
-                        Command="{s:Action CropImage}"
-                        Content="裁切" />
-                </StackPanel>
-            </Border>
+                        <GroupBox>
+                            <StackPanel Orientation="Vertical">
+                                <TextBlock HorizontalAlignment="left">
+                                    宽度(像素)：
+                                </TextBlock>
+                                <TextBox x:Name="PixelColsTextBox" HorizontalAlignment="Stretch">
+                                    <TextBox.Text>
+                                        <Binding
+                                            Mode="OneWayToSource"
+                                            Path="PixelCols"
+                                            UpdateSourceTrigger="PropertyChanged">
+                                            <Binding.ValidationRules>
+                                                <validation:NumericMinMaxValidateRule MaxValue="1000" MinValue="1" />
+                                            </Binding.ValidationRules>
+                                        </Binding>
+                                    </TextBox.Text>
+                                </TextBox>
+                                <TextBlock
+                                    Foreground="{DynamicResource SystemFillColorCriticalBrush}"
+                                    Text="输入值必须在1~1000之间"
+                                    TextWrapping="Wrap"
+                                    Visibility="{Binding ElementName=PixelColsTextBox, Path=(Validation.HasError), Converter={StaticResource BoolToVisibilityConverter}}" />
+                            </StackPanel>
+                        </GroupBox>
+                        <GroupBox>
+                            <StackPanel Orientation="Vertical">
+                                <TextBlock HorizontalAlignment="Left">
+                                    高度(像素)：
+                                </TextBlock>
+                                <TextBox x:Name="PixelRowsTextBox" HorizontalAlignment="Stretch">
+                                    <TextBox.Text>
+                                        <Binding
+                                            Mode="OneWayToSource"
+                                            Path="PixelRows"
+                                            UpdateSourceTrigger="PropertyChanged">
+                                            <Binding.ValidationRules>
+                                                <validation:NumericMinMaxValidateRule MaxValue="1000" MinValue="1" />
+                                            </Binding.ValidationRules>
+                                        </Binding>
+                                    </TextBox.Text>
+                                </TextBox>
+                                <TextBlock
+                                    Foreground="{DynamicResource SystemFillColorCriticalBrush}"
+                                    Text="输入值必须在1~1000之间"
+                                    TextWrapping="Wrap"
+                                    Visibility="{Binding ElementName=PixelRowsTextBox, Path=(Validation.HasError), Converter={StaticResource BoolToVisibilityConverter}}" />
+                            </StackPanel>
+                        </GroupBox>
+                        <GroupBox>
+                            <StackPanel Orientation="Vertical">
+                                <TextBlock
+                                    Grid.Row="0"
+                                    Grid.Column="0"
+                                    Grid.ColumnSpan="2"
+                                    HorizontalAlignment="Left">
+                                    阈值(0~255)：
+                                </TextBlock>
+                                <Slider
+                                    Grid.Row="1"
+                                    Grid.Column="0"
+                                    Maximum="255"
+                                    Minimum="0"
+                                    Value="{Binding Threshold, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                                <TextBox
+                                    x:Name="ThresholdTextBox"
+                                    Grid.Row="1"
+                                    Grid.Column="1"
+                                    MinWidth="20"
+                                    HorizontalAlignment="Stretch">
+                                    <TextBox.Text>
+                                        <Binding
+                                            Mode="TwoWay"
+                                            Path="Threshold"
+                                            UpdateSourceTrigger="PropertyChanged">
+                                            <Binding.ValidationRules>
+                                                <validation:NumericMinMaxValidateRule MaxValue="255" MinValue="0" />
+                                            </Binding.ValidationRules>
+                                        </Binding>
+                                    </TextBox.Text>
+                                </TextBox>
+                                <TextBlock
+                                    Grid.Row="2"
+                                    Grid.Column="0"
+                                    Grid.ColumnSpan="2"
+                                    Foreground="{DynamicResource SystemFillColorCriticalBrush}"
+                                    Text="输入值必须在0~255之间"
+                                    TextWrapping="Wrap"
+                                    Visibility="{Binding ElementName=ThresholdTextBox, Path=(Validation.HasError), Converter={StaticResource BoolToVisibilityConverter}}" />
+                                <Rectangle
+                                    Grid.Row="0"
+                                    Grid.RowSpan="3"
+                                    Grid.Column="0"
+                                    Grid.ColumnSpan="3"
+                                    Stroke="{DynamicResource ControlElevationBorderBrush}"
+                                    StrokeDashArray="4 2" />
+                            </StackPanel>
+                        </GroupBox>
+                        <Button
+                            Margin="0,5"
+                            Padding="10,5"
+                            HorizontalAlignment="Center"
+                            Command="{s:Action CropImage}"
+                            Content="像素化">
+                            <i:Interaction.Triggers>
+                                <i:DataTrigger Binding="{Binding IsCropped}" Value="True">
+                                    <i:ChangePropertyAction PropertyName="Content" Value="回到原图" />
+                                </i:DataTrigger>
+                            </i:Interaction.Triggers>
+                        </Button>
+                    </StackPanel>
+                </Border>
+            </ScrollViewer>
         </Grid>
         <Grid Visibility="{Binding ElementName=ImageDragDropBehavior, Path=IsSuccess, Converter={StaticResource BoolToVisibilityConverter}, ConverterParameter=inverse, Mode=OneWay}">
             <Border Padding="5" Background="{DynamicResource SolidBackgroundFillColorSecondaryBrush}">

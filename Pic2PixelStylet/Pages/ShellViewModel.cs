@@ -68,6 +68,7 @@ namespace Pic2PixelStylet.Pages
         public double CanvasContainerHeight { get; set; }
         public double CropAreaWidth { get; set; }
         public double CropAreaHeight { get; set; }
+        public bool IsCropped { get; set; } = false;
         public string PixelCols
         {
             get => _pixelCols.ToString();
@@ -86,7 +87,7 @@ namespace Pic2PixelStylet.Pages
                     _pixelRows = result;
             }
         }
-        public int Threshhold { get; set; }
+        public int Threshold { get; set; }
         #endregion
 
         #region Constructor
@@ -114,6 +115,7 @@ namespace Pic2PixelStylet.Pages
             {
                 return;
             }
+
             NotifyOfPropertyChange(nameof(IsImagedLoaded));
         }
         #endregion

@@ -6,7 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Controls;
 
-namespace Pic2PixelStylet.Converters
+namespace Pic2PixelStylet.ValidationRules
 {
     internal class NumericMinMaxValidateRule : ValidationRule
     {
@@ -22,7 +22,10 @@ namespace Pic2PixelStylet.Converters
         public override ValidationResult Validate(object value, CultureInfo cultureInfo)
         {
             var input = value as string;
-            var ErrorValidateResult = new ValidationResult(false, $"必须{MinValue}到{MaxValue}之间的整数");
+            var ErrorValidateResult = new ValidationResult(
+                false,
+                $"必须{MinValue}到{MaxValue}之间的整数"
+            );
             if (string.IsNullOrEmpty(input))
             {
                 return ErrorValidateResult;

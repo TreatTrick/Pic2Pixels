@@ -14,9 +14,11 @@ namespace Pic2PixelStylet.Utils
         public static BitmapImage ConvertTo96DpiBitmapImage(string imagePath, out bool success)
         {
             success = true;
-            if (!imagePath.ToLower().EndsWith("jpg")
+            if (
+                !imagePath.ToLower().EndsWith("jpg")
                 && !imagePath.ToLower().EndsWith("png")
-                && !imagePath.ToLower().EndsWith("jpeg"))
+                && !imagePath.ToLower().EndsWith("jpeg")
+            )
             {
                 success = false;
                 return new BitmapImage();

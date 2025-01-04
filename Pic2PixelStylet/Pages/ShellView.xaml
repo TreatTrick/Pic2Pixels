@@ -2,20 +2,52 @@
     x:Class="Pic2PixelStylet.Pages.ShellView"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:behaviors="clr-namespace:Pic2PixelStylet.Behaviors"
+    xmlns:converters="clr-namespace:Pic2PixelStylet.Converters"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
     xmlns:local="clr-namespace:Pic2PixelStylet.Pages"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:s="https://github.com/canton7/Stylet"
-    Title="Stylet Project"
+    Title="图片像素化"
     Width="800"
     Height="450"
+    AllowDrop="True"
     mc:Ignorable="d">
-    <Grid>
-        <TextBlock
-            HorizontalAlignment="Center"
-            VerticalAlignment="Center"
-            FontSize="30"
-            Text="{Binding TestText}" />
-        <Button Command="{s:Action TEST}">Click me</Button>
+    <Window.Resources>
+        <converters:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter" />
+    </Window.Resources>
+    <i:Interaction.Behaviors>
+        <behaviors:ImageDragDropBehavior x:Name="ImageDragDropBehavior" ImagePath="{Binding ImagePath, Mode=OneWayToSource}" />
+    </i:Interaction.Behaviors>
+    <Grid Visibility="{Binding ElementName=ImageDragDropBehavior, Path=IsSuccess, Converter={StaticResource BoolToVisibilityConverter}, ConverterParameter=inverse, Mode=OneWay}">
+        <Border Padding="5">
+            <StackPanel VerticalAlignment="Center" Orientation="Vertical">
+                <TextBlock
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Center"
+                    FontFamily="Segoe MDL2 Assets"
+                    FontSize="80"
+                    Text="&#xF4AA;" />
+                <TextBlock
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Center"
+                    FontSize="32"
+                    Text="将单张JPG或PNG图片拖动到此处"
+                    Visibility="{Binding ElementName=ImageDragDropBehavior, Path=HasError, Converter={StaticResource BoolToVisibilityConverter}, ConverterParameter=inverse}" />
+                <TextBlock
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Center"
+                    FontSize="32"
+                    Foreground="{DynamicResource SystemFillColorCriticalBrush}"
+                    Text="{Binding ElementName=ImageDragDropBehavior, Path=ErrorMessage, Mode=OneTime}"
+                    Visibility="{Binding ElementName=ImageDragDropBehavior, Path=HasError, Converter={StaticResource BoolToVisibilityConverter}}" />
+            </StackPanel>
+        </Border>
+        <Rectangle
+            Stroke="{DynamicResource ControlElevationBorderBrush}"
+            StrokeDashArray="2,3"
+            StrokeThickness="3" />
+
     </Grid>
 </Window>

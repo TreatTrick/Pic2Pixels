@@ -1,7 +1,7 @@
-﻿using Stylet;
-using System.ComponentModel;
+﻿using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Windows.Controls;
+using Stylet;
 
 namespace Pic2PixelStylet.Pages
 {
@@ -14,6 +14,7 @@ namespace Pic2PixelStylet.Pages
             public Border CellBorder;
             public int Row;
             public int Column;
+
             public override string ToString()
             {
                 return $"{Row + 1}行，{Column + 1}列";
@@ -32,10 +33,7 @@ namespace Pic2PixelStylet.Pages
         public string TestText
         {
             get => _testText;
-            set
-            {
-                _testText = value;
-            }
+            set { _testText = value; }
         }
         #endregion
 
@@ -54,6 +52,6 @@ namespace Pic2PixelStylet.Pages
         {
             TestText = "TEST";
         }
-        #endregion      
+        #endregion
     }
 }

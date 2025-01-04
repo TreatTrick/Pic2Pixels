@@ -10,6 +10,7 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:s="https://github.com/canton7/Stylet"
     xmlns:validation="clr-namespace:Pic2PixelStylet.ValidationRules"
+    x:Name="MyShellView"
     Title="图片像素化"
     Width="800"
     Height="450"
@@ -43,19 +44,21 @@
         </Style>
     </Window.Resources>
     <i:Interaction.Behaviors>
-        <behaviors:ImageDragDropBehavior x:Name="ImageDragDropBehavior" ImagePath="{Binding ImagePath, Mode=OneWayToSource}" />
+        <behaviors:ImageDragDropBehavior x:Name="ImageDragDropBehavior" ImagePath="{Binding Path=DataContext.OriginalImagePath, Mode=TwoWay, ElementName=MyShellView}" />
     </i:Interaction.Behaviors>
     <Grid>
         <Grid>
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="5*" />
-                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="*" MaxWidth="200" />
             </Grid.ColumnDefinitions>
             <Grid Grid.Column="0">
-                <Canvas
-                    Width="{Binding CanvasContainerWidth, Mode=OneWayToSource}"
-                    Height="{Binding CanvasContainerHeight, Mode=OneWayToSource}"
-                    Background="{DynamicResource SystemChromeLowColorBrush}">
+                <i:Interaction.Triggers>
+                    <i:EventTrigger EventName="SizeChanged">
+                        <i:InvokeCommandAction Command="{s:Action ResizeCanvasCommand}" PassEventArgsToCommand="True" />
+                    </i:EventTrigger>
+                </i:Interaction.Triggers>
+                <Canvas x:Name="CanvasContainer" Background="{DynamicResource SystemChromeLowColorBrush}">
                     <Image
                         HorizontalAlignment="Center"
                         VerticalAlignment="Center"
@@ -67,29 +70,31 @@
                         </Image.RenderTransform>
                     </Image>
                     <Border
-                        Width="{Binding CropAreaWidth, Mode=TwoWay}"
-                        Height="{Binding CropAreaHeight, Mode=TwoWay}"
+                        Canvas.Left="{Binding CropLeft, Mode=OneWay}"
+                        Canvas.Top="{Binding CropTop, Mode=OneWay}"
+                        Width="{Binding CropAreaWidth, Mode=OneWay}"
+                        Height="{Binding CropAreaHeight, Mode=OneWay}"
                         Background="Transparent"
                         BorderBrush="{DynamicResource SystemFillColorCriticalBrush}"
                         BorderThickness="2">
                         <UniformGrid x:Name="PixelGrid" Visibility="Hidden" />
                     </Border>
                 </Canvas>
-                <Path Fill="{DynamicResource TextFillColorPrimaryBrush}" Opacity="0.5">
+                <Path Fill="{DynamicResource SmokeFillColorDefaultBrush}" Opacity="0.8">
                     <Path.Data>
                         <CombinedGeometry GeometryCombineMode="Exclude">
                             <CombinedGeometry.Geometry1>
-                                <RectangleGeometry x:Name="geometry1" />
+                                <RectangleGeometry Rect="{Binding ContainerRect, Mode=OneWay}" />
                             </CombinedGeometry.Geometry1>
                             <CombinedGeometry.Geometry2>
-                                <RectangleGeometry x:Name="geometry2" />
+                                <RectangleGeometry Rect="{Binding CropRect, Mode=OneWay}" />
                             </CombinedGeometry.Geometry2>
                         </CombinedGeometry>
                     </Path.Data>
                 </Path>
             </Grid>
             <ScrollViewer Grid.Column="1">
-                <Border Padding="5" Background="{DynamicResource CardBackgroundFillColorDefaultBrush}">
+                <Border Padding="5" Background="{DynamicResource TextOnAccentFillColorPrimaryBrush}">
                     <StackPanel Orientation="Vertical">
                         <TextBlock Margin="0,5" HorizontalAlignment="Left">
                             <Run>放大比:</Run>
@@ -103,7 +108,7 @@
                                 <TextBox x:Name="PixelColsTextBox" HorizontalAlignment="Stretch">
                                     <TextBox.Text>
                                         <Binding
-                                            Mode="OneWayToSource"
+                                            Mode="TwoWay"
                                             Path="PixelCols"
                                             UpdateSourceTrigger="PropertyChanged">
                                             <Binding.ValidationRules>
@@ -127,7 +132,7 @@
                                 <TextBox x:Name="PixelRowsTextBox" HorizontalAlignment="Stretch">
                                     <TextBox.Text>
                                         <Binding
-                                            Mode="OneWayToSource"
+                                            Mode="TwoWay"
                                             Path="PixelRows"
                                             UpdateSourceTrigger="PropertyChanged">
                                             <Binding.ValidationRules>

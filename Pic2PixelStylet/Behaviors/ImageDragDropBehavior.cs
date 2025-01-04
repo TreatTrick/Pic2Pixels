@@ -82,7 +82,7 @@ namespace Pic2PixelStylet.Behaviors
         {
             if (!IsDraggedFileValid(e))
                 return;
-            string filePath = ((string[])e.Data.GetData(DataFormats.FileDrop))[0];
+            ImagePath = ((string[])e.Data.GetData(DataFormats.FileDrop))[0];
             IsSuccess = true;
         }
 

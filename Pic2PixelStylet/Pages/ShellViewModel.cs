@@ -1,5 +1,8 @@
 ﻿using System.ComponentModel;
+using System.Diagnostics;
+using System.Drawing;
 using System.Runtime.CompilerServices;
+using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media.Imaging;
 using Pic2PixelStylet.Utils;
@@ -25,22 +28,32 @@ namespace Pic2PixelStylet.Pages
         #endregion
 
         #region Fields
-        private int _gridWidth;
-        private int _gridHeight;
+        private const int _minContainerLength = 1;
+        private const int _maxContainerLength = 10000;
+        private const int _minOpacitiy = 1;
+        private const int _maxOpacitiy = 255;
         private CellInfo[,] _cells;
-        private string _testText;
         private BitmapImage _origianlImage;
         private string _originalImagePath;
-        private int _pixelCols;
-        private int _pixelRows;
+        private double _canvasContainerWidth;
+        private double _canvasContainerHeight;
+        private double _cropAreaWidth;
+        private double _cropAreaHeight;
         #endregion
 
         #region properties
-        public string TestText
-        {
-            get => _testText;
-            set { _testText = value; }
-        }
+        public bool IsImagedLoaded => _origianlImage != null;
+        public double ScaleFactor { get; set; }
+        public double ImageLeft { get; set; }
+        public double ImageTop { get; set; }
+        public double CropLeft { get; set; }
+        public double CropTop { get; set; }
+        public bool IsCropped { get; set; } = false;
+        public int PixelCols { get; set; }
+        public int PixelRows { get; set; }
+        public int Threshold { get; set; }
+        public Rect CropRect { get; set; }
+        public Rect ContainerRect { get; set; }
 
         public BitmapImage OrigianlImage
         {
@@ -53,55 +66,51 @@ namespace Pic2PixelStylet.Pages
             get => _originalImagePath;
             set
             {
-                _originalImagePath = value;
                 OnOriginalImagePathChanged(value);
+                _originalImagePath = value;
             }
         }
 
-        public bool IsImagedLoaded => _origianlImage != null;
-        public double ScaleFactor { get; set; }
-        public double ImageLeft { get; set; }
-        public double ImageTop { get; set; }
-        public double CropLeft { get; set; }
-        public double CropTop { get; set; }
-        public double CanvasContainerWidth { get; set; }
-        public double CanvasContainerHeight { get; set; }
-        public double CropAreaWidth { get; set; }
-        public double CropAreaHeight { get; set; }
-        public bool IsCropped { get; set; } = false;
-        public string PixelCols
+        public double CropAreaWidth
         {
-            get => _pixelCols.ToString();
-            set
-            {
-                if (int.TryParse(value, out int result))
-                    _pixelCols = result;
-            }
+            get => _cropAreaWidth;
+            set { _cropAreaWidth = value; }
         }
-        public string PixelRows
+
+        public double CropAreaHeight
         {
-            get => _pixelRows.ToString();
-            set
-            {
-                if (int.TryParse(value, out int result))
-                    _pixelRows = result;
-            }
+            get => _cropAreaHeight;
+            set { _cropAreaHeight = value; }
         }
-        public int Threshold { get; set; }
         #endregion
 
         #region Constructor
-        public ShellViewModel()
+        public ShellViewModel() { }
+        #endregion
+
+        #region OvverideMethods
+        protected override void OnViewLoaded()
         {
-            _gridWidth = 51;
-            _gridHeight = 20;
-            _testText = "100";
-            _cells = new CellInfo[_gridWidth, _gridHeight];
+            base.OnViewLoaded();
+            PixelRows = 20;
+            PixelCols = 51;
+            _cells = new CellInfo[PixelRows, PixelCols];
+            Threshold = 128;
+            ScaleFactor = 1;
+            _canvasContainerWidth = (View as ShellView).CanvasContainer.ActualWidth;
+            _canvasContainerHeight = (View as ShellView).CanvasContainer.ActualHeight;
+            ResizeCropArea();
         }
         #endregion
 
         #region PublicMethods
-
+        public void ResizeCanvasCommand(SizeChangedEventArgs e)
+        {
+            _canvasContainerWidth = e.NewSize.Width;
+            _canvasContainerHeight = e.NewSize.Height;
+            ResizeCropArea();
+            ResizeImage();
+        }
         #endregion
 
         #region PrivateMethods
@@ -115,8 +124,43 @@ namespace Pic2PixelStylet.Pages
             {
                 return;
             }
-
+            ResizeImage();
             NotifyOfPropertyChange(nameof(IsImagedLoaded));
+        }
+
+        private void ResizeImage()
+        {
+            double imageX = OrigianlImage.Width;
+            double imageY = OrigianlImage.Height;
+            if (imageX > imageY)
+            {
+                ScaleFactor = _canvasContainerWidth / imageX;
+            }
+            else
+            {
+                ScaleFactor = _canvasContainerHeight / imageY;
+            }
+            ImageLeft = (_canvasContainerWidth - imageX * ScaleFactor) / 2;
+            ImageTop = (_canvasContainerHeight - imageY * ScaleFactor) / 2;
+        }
+
+        private void ResizeCropArea()
+        {
+            if (PixelRows > PixelCols)
+            {
+                CropAreaHeight = _canvasContainerHeight;
+                CropAreaWidth = CropAreaHeight * PixelCols / PixelRows;
+            }
+            else
+            {
+                CropAreaWidth = _canvasContainerWidth;
+                CropAreaHeight = CropAreaWidth * PixelRows / PixelCols;
+            }
+
+            CropLeft = (_canvasContainerWidth - CropAreaWidth) / 2;
+            CropTop = (_canvasContainerHeight - CropAreaHeight) / 2;
+            ContainerRect = new Rect(0, 0, _canvasContainerWidth, _canvasContainerHeight);
+            CropRect = new Rect(CropLeft, CropTop, _cropAreaWidth, _cropAreaHeight);
         }
         #endregion
     }

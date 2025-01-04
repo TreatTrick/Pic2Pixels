@@ -20,34 +20,148 @@
     <i:Interaction.Behaviors>
         <behaviors:ImageDragDropBehavior x:Name="ImageDragDropBehavior" ImagePath="{Binding ImagePath, Mode=OneWayToSource}" />
     </i:Interaction.Behaviors>
-    <Grid Visibility="{Binding ElementName=ImageDragDropBehavior, Path=IsSuccess, Converter={StaticResource BoolToVisibilityConverter}, ConverterParameter=inverse, Mode=OneWay}">
-        <Border Padding="5">
-            <StackPanel VerticalAlignment="Center" Orientation="Vertical">
-                <TextBlock
-                    HorizontalAlignment="Center"
-                    VerticalAlignment="Center"
-                    FontFamily="Segoe MDL2 Assets"
-                    FontSize="80"
-                    Text="&#xF4AA;" />
-                <TextBlock
-                    HorizontalAlignment="Center"
-                    VerticalAlignment="Center"
-                    FontSize="32"
-                    Text="将单张JPG或PNG图片拖动到此处"
-                    Visibility="{Binding ElementName=ImageDragDropBehavior, Path=HasError, Converter={StaticResource BoolToVisibilityConverter}, ConverterParameter=inverse}" />
-                <TextBlock
-                    HorizontalAlignment="Center"
-                    VerticalAlignment="Center"
-                    FontSize="32"
-                    Foreground="{DynamicResource SystemFillColorCriticalBrush}"
-                    Text="{Binding ElementName=ImageDragDropBehavior, Path=ErrorMessage, Mode=OneTime}"
-                    Visibility="{Binding ElementName=ImageDragDropBehavior, Path=HasError, Converter={StaticResource BoolToVisibilityConverter}}" />
-            </StackPanel>
-        </Border>
-        <Rectangle
-            Stroke="{DynamicResource ControlElevationBorderBrush}"
-            StrokeDashArray="2,3"
-            StrokeThickness="3" />
-
+    <Grid>
+        <Grid>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="auto" />
+            </Grid.ColumnDefinitions>
+            <Grid Grid.Column="0">
+                <Canvas
+                    Width="{Binding CanvasContainerWidth, Mode=OneWayToSource}"
+                    Height="{Binding CanvasContainerHeight, Mode=OneWayToSource}"
+                    Background="{DynamicResource SystemChromeLowColorBrush}">
+                    <Image
+                        HorizontalAlignment="Center"
+                        VerticalAlignment="Center"
+                        Source="{Binding OrigianlImage, Mode=OneWay}">
+                        <Image.RenderTransform>
+                            <TransformGroup>
+                                <ScaleTransform ScaleX="{Binding ScaleFactor, Mode=OneWay}" ScaleY="{Binding ScaleFactor, Mode=OneWay}" />
+                            </TransformGroup>
+                        </Image.RenderTransform>
+                    </Image>
+                    <Border
+                        Width="{Binding CropAreaWidth, Mode=TwoWay}"
+                        Height="{Binding CropAreaHeight, Mode=TwoWay}"
+                        Background="Transparent"
+                        BorderBrush="{DynamicResource SystemFillColorCriticalBrush}"
+                        BorderThickness="2">
+                        <UniformGrid x:Name="PixelGrid" Visibility="Hidden" />
+                    </Border>
+                </Canvas>
+                <Path Fill="{DynamicResource TextFillColorPrimaryBrush}" Opacity="0.5">
+                    <Path.Data>
+                        <CombinedGeometry GeometryCombineMode="Exclude">
+                            <CombinedGeometry.Geometry1>
+                                <RectangleGeometry x:Name="geometry1" />
+                            </CombinedGeometry.Geometry1>
+                            <CombinedGeometry.Geometry2>
+                                <RectangleGeometry x:Name="geometry2" />
+                            </CombinedGeometry.Geometry2>
+                        </CombinedGeometry>
+                    </Path.Data>
+                </Path>
+            </Grid>
+            <Border
+                Grid.Column="1"
+                Padding="5"
+                Background="{DynamicResource CardBackgroundFillColorDefaultBrush}">
+                <StackPanel Orientation="Vertical">
+                    <TextBlock Margin="0,5" HorizontalAlignment="Left">
+                        <Run>放大比:</Run>
+                        <Run Text="{Binding ScaleFactor, Mode=OneWay, StringFormat=F2}" />
+                    </TextBlock>
+                    <UniformGrid
+                        Margin="0,5"
+                        HorizontalAlignment="Stretch"
+                        Columns="2"
+                        Rows="1">
+                        <TextBlock HorizontalAlignment="Right">宽度(像素)：</TextBlock>
+                        <TextBox HorizontalAlignment="Stretch" Text="{Binding PixelCols, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}" />
+                    </UniformGrid>
+                    <UniformGrid
+                        Margin="0,5"
+                        HorizontalAlignment="Stretch"
+                        Columns="2"
+                        Rows="1">
+                        <TextBlock HorizontalAlignment="Right">高度(像素)：</TextBlock>
+                        <TextBox HorizontalAlignment="Stretch" Text="{Binding PixelRows, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}" />
+                    </UniformGrid>
+                    <Grid Margin="0,5" HorizontalAlignment="Stretch">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="auto" />
+                            <RowDefinition Height="auto" />
+                        </Grid.RowDefinitions>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="auto" />
+                        </Grid.ColumnDefinitions>
+                        <TextBlock
+                            Grid.Row="0"
+                            Grid.Column="0"
+                            Grid.ColumnSpan="2"
+                            HorizontalAlignment="Left">
+                            阈值(0~255)：
+                        </TextBlock>
+                        <Slider
+                            Grid.Row="1"
+                            Grid.Column="0"
+                            Maximum="255"
+                            Minimum="0"
+                            Value="{Binding Threshold, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                        <TextBox
+                            Grid.Row="1"
+                            Grid.Column="1"
+                            MinWidth="20"
+                            HorizontalAlignment="Stretch"
+                            Text="{Binding Threshold, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                        <Rectangle
+                            Grid.Row="0"
+                            Grid.RowSpan="2"
+                            Grid.Column="0"
+                            Grid.ColumnSpan="2"
+                            Stroke="{DynamicResource ControlElevationBorderBrush}"
+                            StrokeDashArray="4 2"
+                            StrokeThickness="0.5" />
+                    </Grid>
+                    <Button
+                        Margin="0,5"
+                        Padding="10,5"
+                        HorizontalAlignment="Center"
+                        Command="{s:Action CropImage}"
+                        Content="裁切" />
+                </StackPanel>
+            </Border>
+        </Grid>
+        <Grid Visibility="{Binding ElementName=ImageDragDropBehavior, Path=IsSuccess, Converter={StaticResource BoolToVisibilityConverter}, ConverterParameter=inverse, Mode=OneWay}">
+            <Border Padding="5" Background="{DynamicResource SolidBackgroundFillColorSecondaryBrush}">
+                <StackPanel VerticalAlignment="Center" Orientation="Vertical">
+                    <TextBlock
+                        HorizontalAlignment="Center"
+                        VerticalAlignment="Center"
+                        FontFamily="Segoe MDL2 Assets"
+                        FontSize="80"
+                        Text="&#xF4AA;" />
+                    <TextBlock
+                        HorizontalAlignment="Center"
+                        VerticalAlignment="Center"
+                        FontSize="32"
+                        Text="将单张JPG或PNG图片拖动到此处"
+                        Visibility="{Binding ElementName=ImageDragDropBehavior, Path=HasError, Converter={StaticResource BoolToVisibilityConverter}, ConverterParameter=inverse}" />
+                    <TextBlock
+                        HorizontalAlignment="Center"
+                        VerticalAlignment="Center"
+                        FontSize="32"
+                        Foreground="{DynamicResource SystemFillColorCriticalBrush}"
+                        Text="{Binding ElementName=ImageDragDropBehavior, Path=ErrorMessage, Mode=OneTime}"
+                        Visibility="{Binding ElementName=ImageDragDropBehavior, Path=HasError, Converter={StaticResource BoolToVisibilityConverter}}" />
+                </StackPanel>
+            </Border>
+            <Rectangle
+                Stroke="{DynamicResource ControlElevationBorderBrush}"
+                StrokeDashArray="2,3"
+                StrokeThickness="3" />
+        </Grid>
     </Grid>
 </Window>

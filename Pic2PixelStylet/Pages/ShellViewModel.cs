@@ -7,6 +7,7 @@ using System.Windows.Controls;
 using System.Windows.Media.Imaging;
 using Pic2PixelStylet.Utils;
 using Stylet;
+using Point = System.Windows.Point;
 
 namespace Pic2PixelStylet.Pages
 {
@@ -28,10 +29,6 @@ namespace Pic2PixelStylet.Pages
         #endregion
 
         #region Fields
-        private const int _minContainerLength = 1;
-        private const int _maxContainerLength = 10000;
-        private const int _minOpacitiy = 1;
-        private const int _maxOpacitiy = 255;
         private CellInfo[,] _cells;
         private BitmapImage _origianlImage;
         private string _originalImagePath;
@@ -85,31 +82,35 @@ namespace Pic2PixelStylet.Pages
         #endregion
 
         #region Constructor
-        public ShellViewModel() { }
-        #endregion
-
-        #region OvverideMethods
-        protected override void OnViewLoaded()
+        public ShellViewModel()
         {
-            base.OnViewLoaded();
             PixelRows = 20;
             PixelCols = 51;
             _cells = new CellInfo[PixelRows, PixelCols];
             Threshold = 128;
             ScaleFactor = 1;
-            _canvasContainerWidth = (View as ShellView).CanvasContainer.ActualWidth;
-            _canvasContainerHeight = (View as ShellView).CanvasContainer.ActualHeight;
-            ResizeCropArea();
         }
         #endregion
 
         #region PublicMethods
-        public void ResizeCanvasCommand(SizeChangedEventArgs e)
+        public void ResizeCanvasCommand(System.Windows.Size size)
         {
-            _canvasContainerWidth = e.NewSize.Width;
-            _canvasContainerHeight = e.NewSize.Height;
+            _canvasContainerWidth = size.Width;
+            _canvasContainerHeight = size.Height;
             ResizeCropArea();
             ResizeImage();
+        }
+
+        public void ZoomCommand(int Delta)
+        {
+            double zoomFactor = Delta > 0 ? 1.1 : 0.9;
+            ScaleFactor *= zoomFactor;
+        }
+
+        public void DragImage(System.Windows.Point offsetPoint)
+        {
+            ImageLeft += offsetPoint.X;
+            ImageTop += offsetPoint.Y;
         }
         #endregion
 
@@ -130,6 +131,8 @@ namespace Pic2PixelStylet.Pages
 
         private void ResizeImage()
         {
+            if (OrigianlImage == null)
+                return;
             double imageX = OrigianlImage.Width;
             double imageY = OrigianlImage.Height;
             if (imageX > imageY)

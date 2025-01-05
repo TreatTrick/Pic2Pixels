@@ -17,13 +17,15 @@
     AllowDrop="True"
     mc:Ignorable="d">
     <Window.Resources>
+        <converters:MouseEventArgsToPointConverter x:Key="MouseEventArgsToPointConverter" />
+        <converters:WidthHeightToSizeConverter x:Key="SizeConverter" />
         <converters:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter" />
         <Style TargetType="GroupBox">
             <Setter Property="SnapsToDevicePixels" Value="True" />
             <Setter Property="Margin" Value="3" />
             <Setter Property="Padding" Value="3" />
             <Setter Property="Header" Value="" />
-            <Setter Property="BorderBrush" Value="{DynamicResource ControlElevationBorderBrush}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource TextFillColorDisabledBrush}" />
             <Setter Property="BorderThickness" Value="1" />
             <Setter Property="Template">
                 <Setter.Value>
@@ -44,8 +46,20 @@
         </Style>
     </Window.Resources>
     <i:Interaction.Behaviors>
-        <behaviors:ImageDragDropBehavior x:Name="ImageDragDropBehavior" ImagePath="{Binding Path=DataContext.OriginalImagePath, Mode=TwoWay, ElementName=MyShellView}" />
+        <behaviors:ImageDragDropBehavior x:Name="ImageDragDropBehavior" ImagePath="{Binding OriginalImagePath, Mode=TwoWay}" />
     </i:Interaction.Behaviors>
+    <i:Interaction.Triggers>
+        <i:EventTrigger EventName="ContentRendered">
+            <i:InvokeCommandAction Command="{s:Action ResizeCanvasCommand}">
+                <i:InvokeCommandAction.CommandParameter>
+                    <MultiBinding Converter="{StaticResource SizeConverter}">
+                        <Binding ElementName="CanvasContainer" Path="ActualWidth" />
+                        <Binding ElementName="CanvasContainer" Path="ActualHeight" />
+                    </MultiBinding>
+                </i:InvokeCommandAction.CommandParameter>
+            </i:InvokeCommandAction>
+        </i:EventTrigger>
+    </i:Interaction.Triggers>
     <Grid>
         <Grid>
             <Grid.ColumnDefinitions>
@@ -55,11 +69,19 @@
             <Grid Grid.Column="0">
                 <i:Interaction.Triggers>
                     <i:EventTrigger EventName="SizeChanged">
-                        <i:InvokeCommandAction Command="{s:Action ResizeCanvasCommand}" PassEventArgsToCommand="True" />
+                        <i:InvokeCommandAction Command="{s:Action ResizeCanvasCommand}" EventArgsParameterPath="NewSize" />
+                    </i:EventTrigger>
+                    <i:EventTrigger EventName="MouseWheel">
+                        <i:InvokeCommandAction Command="{s:Action ZoomCommand}" EventArgsParameterPath="Delta" />
                     </i:EventTrigger>
                 </i:Interaction.Triggers>
+                <i:Interaction.Behaviors>
+                    <behaviors:DragImageBehavior DragImageCommand="{s:Action DragImage}" />
+                </i:Interaction.Behaviors>
                 <Canvas x:Name="CanvasContainer" Background="{DynamicResource SystemChromeLowColorBrush}">
                     <Image
+                        Canvas.Left="{Binding ImageLeft, Mode=TwoWay}"
+                        Canvas.Top="{Binding ImageTop, Mode=TwoWay}"
                         HorizontalAlignment="Center"
                         VerticalAlignment="Center"
                         Source="{Binding OrigianlImage, Mode=OneWay}">
@@ -202,7 +224,8 @@
                             Padding="10,5"
                             HorizontalAlignment="Center"
                             Command="{s:Action CropImage}"
-                            Content="像素化">
+                            Content="像素化"
+                            Style="{DynamicResource AccentButtonStyle}">
                             <i:Interaction.Triggers>
                                 <i:DataTrigger Binding="{Binding IsCropped}" Value="True">
                                     <i:ChangePropertyAction PropertyName="Content" Value="回到原图" />

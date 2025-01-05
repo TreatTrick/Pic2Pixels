@@ -1,9 +1,11 @@
-﻿using System.ComponentModel;
+﻿using System;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.Drawing;
 using System.Runtime.CompilerServices;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using Pic2PixelStylet.Utils;
 using Stylet;
@@ -13,21 +15,6 @@ namespace Pic2PixelStylet.Pages
 {
     public class ShellViewModel : Screen
     {
-        #region PrivateClass
-        private struct CellInfo
-        {
-            public bool IsBlue;
-            public Border CellBorder;
-            public int Row;
-            public int Column;
-
-            public override string ToString()
-            {
-                return $"{Row + 1}行，{Column + 1}列";
-            }
-        }
-        #endregion
-
         #region Fields
         private CellInfo[,] _cells;
         private BitmapImage _origianlImage;
@@ -36,6 +23,8 @@ namespace Pic2PixelStylet.Pages
         private double _canvasContainerHeight;
         private double _cropAreaWidth;
         private double _cropAreaHeight;
+        private int _threshold;
+        private FormatConvertedBitmap _grayBitmap;
         #endregion
 
         #region properties
@@ -48,9 +37,18 @@ namespace Pic2PixelStylet.Pages
         public bool IsCropped { get; set; } = false;
         public int PixelCols { get; set; }
         public int PixelRows { get; set; }
-        public int Threshold { get; set; }
         public Rect CropRect { get; set; }
         public Rect ContainerRect { get; set; }
+
+        public int Threshold
+        {
+            get => _threshold;
+            set
+            {
+                _threshold = value;
+                BuildCells(_grayBitmap, value);
+            }
+        }
 
         public BitmapImage OrigianlImage
         {
@@ -78,6 +76,12 @@ namespace Pic2PixelStylet.Pages
         {
             get => _cropAreaHeight;
             set { _cropAreaHeight = value; }
+        }
+
+        public CellInfo[,] Cells
+        {
+            get => _cells;
+            set { _cells = value; }
         }
         #endregion
 
@@ -112,9 +116,81 @@ namespace Pic2PixelStylet.Pages
             ImageLeft += offsetPoint.X;
             ImageTop += offsetPoint.Y;
         }
+
+        public void CropImage()
+        {
+            if (OrigianlImage == null)
+                return;
+
+            if (IsCropped)
+            {
+                IsCropped = false;
+                return;
+            }
+            InnerCropImage();
+            IsCropped = true;
+        }
         #endregion
 
         #region PrivateMethods
+
+        private void InnerCropImage()
+        {
+            double startX = ImageLeft - CropLeft;
+            double startY = ImageTop - CropTop;
+
+            var croppedBitmap = ImageProcessor.CropImage(
+                OrigianlImage,
+                startX,
+                startY,
+                _cropAreaWidth,
+                _cropAreaHeight,
+                ScaleFactor
+            );
+            var transformedPic = ImageProcessor.ResizeBitmapSource(
+                croppedBitmap,
+                PixelCols,
+                PixelRows
+            );
+            ConvertToBinaryCells(transformedPic, Threshold);
+        }
+
+        private void ConvertToBinaryCells(BitmapSource bitmapSource, int threshold)
+        {
+            _grayBitmap = new FormatConvertedBitmap(bitmapSource, PixelFormats.Gray8, null, 0);
+            BuildCells(_grayBitmap, threshold);
+        }
+
+        private void BuildCells(FormatConvertedBitmap grayBitmap, int threshold)
+        {
+            if (grayBitmap == null)
+                return;
+            int stride = (grayBitmap.PixelWidth * grayBitmap.Format.BitsPerPixel + 7) / 8;
+            var pixelData = new byte[grayBitmap.PixelHeight * stride];
+            grayBitmap.CopyPixels(pixelData, stride, 0);
+            if (pixelData == null || pixelData.Length == 0)
+                return;
+            for (int i = 0; i < pixelData.Length; i++)
+            {
+                pixelData[i] = pixelData[i] > threshold ? (byte)255 : (byte)0; // 大于阈值为白色，小于等于为黑色
+            }
+
+            int w = grayBitmap.PixelWidth;
+            int h = grayBitmap.PixelHeight;
+
+            var newCells = new CellInfo[h, w];
+            for (int row = 0; row < h; row++)
+            {
+                for (int col = 0; col < w; col++)
+                {
+                    newCells[row, col].IsBlue = pixelData[row * w + col] > threshold ? true : false;
+                    newCells[row, col].Row = row;
+                    newCells[row, col].Column = col;
+                }
+            }
+            Cells = newCells;
+        }
+
         private void OnOriginalImagePathChanged(string path)
         {
             if (path == _originalImagePath)

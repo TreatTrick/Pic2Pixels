@@ -26,6 +26,20 @@ namespace Pic2PixelStylet.Behaviors
             set { SetValue(DragImageCommanProperty, value); }
         }
 
+        public static readonly DependencyProperty IsDragEnabeledProperty =
+            DependencyProperty.Register(
+                nameof(IsDragEnabeled),
+                typeof(bool),
+                typeof(DragImageBehavior),
+                new PropertyMetadata(true)
+            );
+
+        public bool IsDragEnabeled
+        {
+            get { return (bool)GetValue(IsDragEnabeledProperty); }
+            set { SetValue(IsDragEnabeledProperty, value); }
+        }
+
         protected override void OnAttached()
         {
             base.OnAttached();
@@ -47,6 +61,10 @@ namespace Pic2PixelStylet.Behaviors
             System.Windows.Input.MouseButtonEventArgs e
         )
         {
+            if (!IsDragEnabeled)
+            {
+                return;
+            }
             var DraggedImage = sender as UIElement;
             _dragStartPoint = e.GetPosition(DraggedImage);
             _isDragging = true;
@@ -58,6 +76,10 @@ namespace Pic2PixelStylet.Behaviors
             System.Windows.Input.MouseEventArgs e
         )
         {
+            if (!IsDragEnabeled)
+            {
+                return;
+            }
             if (_isDragging)
             {
                 var DraggedImage = sender as UIElement;

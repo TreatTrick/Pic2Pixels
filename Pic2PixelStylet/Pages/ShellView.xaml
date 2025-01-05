@@ -99,7 +99,7 @@
                         Background="Transparent"
                         BorderBrush="{DynamicResource SystemFillColorCriticalBrush}"
                         BorderThickness="2">
-                        <UniformGrid x:Name="PixelGrid" Visibility="Hidden" />
+                        <local:PixelGrid Cells="{Binding Cells, Mode=OneWay}" Visibility="{Binding IsCropped, Converter={StaticResource BoolToVisibilityConverter}}" />
                     </Border>
                 </Canvas>
                 <Path Fill="{DynamicResource SmokeFillColorDefaultBrush}" Opacity="0.8">
@@ -229,6 +229,9 @@
                             <i:Interaction.Triggers>
                                 <i:DataTrigger Binding="{Binding IsCropped}" Value="True">
                                     <i:ChangePropertyAction PropertyName="Content" Value="回到原图" />
+                                </i:DataTrigger>
+                                <i:DataTrigger Binding="{Binding IsCropped}" Value="False">
+                                    <i:ChangePropertyAction PropertyName="Content" Value="像素化" />
                                 </i:DataTrigger>
                             </i:Interaction.Triggers>
                         </Button>

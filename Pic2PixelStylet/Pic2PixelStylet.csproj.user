@@ -7,6 +7,14 @@
     </ApplicationDefinition>
   </ItemGroup>
   <ItemGroup>
+    <Compile Update="Pages\PixelGrid.xaml.cs">
+      <SubType>Code</SubType>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <Page Update="Pages\PixelGrid.xaml">
+      <SubType>Designer</SubType>
+    </Page>
     <Page Update="Pages\ShellView.xaml">
       <SubType>Designer</SubType>
     </Page>

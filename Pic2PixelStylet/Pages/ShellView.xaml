@@ -12,11 +12,12 @@
     xmlns:validation="clr-namespace:Pic2PixelStylet.ValidationRules"
     x:Name="MyShellView"
     Title="图片像素化"
-    Width="800"
-    Height="450"
+    Width="900"
+    Height="650"
     AllowDrop="True"
     mc:Ignorable="d">
     <Window.Resources>
+        <converters:BoolInverseConverter x:Key="BoolInverseConverter" />
         <converters:MouseEventArgsToPointConverter x:Key="MouseEventArgsToPointConverter" />
         <converters:WidthHeightToSizeConverter x:Key="SizeConverter" />
         <converters:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter" />
@@ -76,7 +77,7 @@
                     </i:EventTrigger>
                 </i:Interaction.Triggers>
                 <i:Interaction.Behaviors>
-                    <behaviors:DragImageBehavior DragImageCommand="{s:Action DragImage}" />
+                    <behaviors:DragImageBehavior DragImageCommand="{s:Action DragImage}" IsDragEnabeled="{Binding IsCropped, Mode=OneWay, Converter={StaticResource BoolInverseConverter}}" />
                 </i:Interaction.Behaviors>
                 <Canvas x:Name="CanvasContainer" Background="{DynamicResource SystemChromeLowColorBrush}">
                     <Image
@@ -99,7 +100,10 @@
                         Background="Transparent"
                         BorderBrush="{DynamicResource SystemFillColorCriticalBrush}"
                         BorderThickness="2">
-                        <local:PixelGrid Cells="{Binding Cells, Mode=OneWay}" Visibility="{Binding IsCropped, Converter={StaticResource BoolToVisibilityConverter}}" />
+                        <local:PixelGrid
+                            x:Name="PixelGrid"
+                            Cells="{Binding Cells, Mode=OneWay}"
+                            Visibility="{Binding IsCropped, Converter={StaticResource BoolToVisibilityConverter}}" />
                     </Border>
                 </Canvas>
                 <Path Fill="{DynamicResource SmokeFillColorDefaultBrush}" Opacity="0.8">
@@ -122,7 +126,7 @@
                             <Run>放大比:</Run>
                             <Run Text="{Binding ScaleFactor, Mode=OneWay, StringFormat=F2}" />
                         </TextBlock>
-                        <GroupBox>
+                        <GroupBox Visibility="{Binding IsCropped, Converter={StaticResource BoolToVisibilityConverter}, ConverterParameter=inverse}">
                             <StackPanel Orientation="Vertical">
                                 <TextBlock HorizontalAlignment="left">
                                     宽度(像素)：
@@ -134,7 +138,10 @@
                                             Path="PixelCols"
                                             UpdateSourceTrigger="PropertyChanged">
                                             <Binding.ValidationRules>
-                                                <validation:NumericMinMaxValidateRule MaxValue="1000" MinValue="1" />
+                                                <validation:NumericMinMaxValidateRule
+                                                    ErrorMessage="输入值必须是{0}到{1}之间的整数"
+                                                    MaxValue="1000"
+                                                    MinValue="1" />
                                             </Binding.ValidationRules>
                                         </Binding>
                                     </TextBox.Text>
@@ -146,7 +153,7 @@
                                     Visibility="{Binding ElementName=PixelColsTextBox, Path=(Validation.HasError), Converter={StaticResource BoolToVisibilityConverter}}" />
                             </StackPanel>
                         </GroupBox>
-                        <GroupBox>
+                        <GroupBox Visibility="{Binding IsCropped, Converter={StaticResource BoolToVisibilityConverter}, ConverterParameter=inverse}">
                             <StackPanel Orientation="Vertical">
                                 <TextBlock HorizontalAlignment="Left">
                                     高度(像素)：
@@ -158,7 +165,10 @@
                                             Path="PixelRows"
                                             UpdateSourceTrigger="PropertyChanged">
                                             <Binding.ValidationRules>
-                                                <validation:NumericMinMaxValidateRule MaxValue="1000" MinValue="1" />
+                                                <validation:NumericMinMaxValidateRule
+                                                    ErrorMessage="输入值必须是{0}到{1}之间的整数"
+                                                    MaxValue="1000"
+                                                    MinValue="1" />
                                             </Binding.ValidationRules>
                                         </Binding>
                                     </TextBox.Text>
@@ -170,7 +180,7 @@
                                     Visibility="{Binding ElementName=PixelRowsTextBox, Path=(Validation.HasError), Converter={StaticResource BoolToVisibilityConverter}}" />
                             </StackPanel>
                         </GroupBox>
-                        <GroupBox>
+                        <GroupBox Visibility="{Binding IsCropped, Converter={StaticResource BoolToVisibilityConverter}}">
                             <StackPanel Orientation="Vertical">
                                 <TextBlock
                                     Grid.Row="0"
@@ -197,7 +207,10 @@
                                             Path="Threshold"
                                             UpdateSourceTrigger="PropertyChanged">
                                             <Binding.ValidationRules>
-                                                <validation:NumericMinMaxValidateRule MaxValue="255" MinValue="0" />
+                                                <validation:NumericMinMaxValidateRule
+                                                    ErrorMessage="输入值必须是{0}到{1}之间的整数"
+                                                    MaxValue="255"
+                                                    MinValue="0" />
                                             </Binding.ValidationRules>
                                         </Binding>
                                     </TextBox.Text>
@@ -210,13 +223,54 @@
                                     Text="输入值必须在0~255之间"
                                     TextWrapping="Wrap"
                                     Visibility="{Binding ElementName=ThresholdTextBox, Path=(Validation.HasError), Converter={StaticResource BoolToVisibilityConverter}}" />
-                                <Rectangle
+                            </StackPanel>
+                        </GroupBox>
+                        <GroupBox Visibility="{Binding IsCropped, Converter={StaticResource BoolToVisibilityConverter}}">
+                            <StackPanel Orientation="Vertical">
+                                <TextBlock
                                     Grid.Row="0"
-                                    Grid.RowSpan="3"
                                     Grid.Column="0"
-                                    Grid.ColumnSpan="3"
-                                    Stroke="{DynamicResource ControlElevationBorderBrush}"
-                                    StrokeDashArray="4 2" />
+                                    Grid.ColumnSpan="2"
+                                    HorizontalAlignment="Left">
+                                    不透明度(0~1)：
+                                </TextBlock>
+                                <Slider
+                                    Grid.Row="1"
+                                    Grid.Column="0"
+                                    Maximum="1"
+                                    Minimum="0"
+                                    TickFrequency="0.01"
+                                    Value="{Binding Opacity, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, ElementName=PixelGrid}" />
+                                <TextBox
+                                    x:Name="OpacityTextBox"
+                                    Grid.Row="1"
+                                    Grid.Column="1"
+                                    MinWidth="20"
+                                    HorizontalAlignment="Stretch">
+                                    <TextBox.Text>
+                                        <Binding
+                                            ElementName="PixelGrid"
+                                            Mode="TwoWay"
+                                            Path="Opacity"
+                                            StringFormat="F2"
+                                            UpdateSourceTrigger="PropertyChanged">
+                                            <Binding.ValidationRules>
+                                                <validation:NumericMinMaxValidateRule
+                                                    ErrorMessage="输入值必须是{0}到{1}之间的小数"
+                                                    MaxValue="1"
+                                                    MinValue="0" />
+                                            </Binding.ValidationRules>
+                                        </Binding>
+                                    </TextBox.Text>
+                                </TextBox>
+                                <TextBlock
+                                    Grid.Row="2"
+                                    Grid.Column="0"
+                                    Grid.ColumnSpan="2"
+                                    Foreground="{DynamicResource SystemFillColorCriticalBrush}"
+                                    Text="输入值必须是0到1之间的小数"
+                                    TextWrapping="Wrap"
+                                    Visibility="{Binding ElementName=OpacityTextBox, Path=(Validation.HasError), Converter={StaticResource BoolToVisibilityConverter}}" />
                             </StackPanel>
                         </GroupBox>
                         <Button

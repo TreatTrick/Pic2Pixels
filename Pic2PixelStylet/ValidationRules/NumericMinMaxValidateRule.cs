@@ -10,13 +10,15 @@ namespace Pic2PixelStylet.ValidationRules
 {
     internal class NumericMinMaxValidateRule : ValidationRule
     {
-        public int MinValue { get; set; }
-        public int MaxValue { get; set; }
+        public double MinValue { get; set; }
+        public double MaxValue { get; set; }
+        public string ErrorMessage { get; set; } //like "Value must be between {0} and {1}"
 
         public NumericMinMaxValidateRule()
         {
             MinValue = 1;
             MaxValue = 255;
+            ErrorMessage = "Value must be between {0} and {1}";
         }
 
         public override ValidationResult Validate(object value, CultureInfo cultureInfo)
@@ -24,13 +26,13 @@ namespace Pic2PixelStylet.ValidationRules
             var input = value as string;
             var ErrorValidateResult = new ValidationResult(
                 false,
-                $"必须{MinValue}到{MaxValue}之间的整数"
+                string.Format(ErrorMessage, MinValue, MaxValue)
             );
             if (string.IsNullOrEmpty(input))
             {
                 return ErrorValidateResult;
             }
-            if (!int.TryParse(input, out int num))
+            if (!double.TryParse(input, out double num))
             {
                 return ErrorValidateResult;
             }

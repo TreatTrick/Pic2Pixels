@@ -107,12 +107,16 @@ namespace Pic2PixelStylet.Pages
 
         public void ZoomCommand(int Delta)
         {
+            if (IsCropped)
+                return;
             double zoomFactor = Delta > 0 ? 1.1 : 0.9;
             ScaleFactor *= zoomFactor;
         }
 
         public void DragImage(System.Windows.Point offsetPoint)
         {
+            if (IsCropped)
+                return;
             ImageLeft += offsetPoint.X;
             ImageTop += offsetPoint.Y;
         }

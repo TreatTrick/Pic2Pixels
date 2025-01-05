@@ -273,6 +273,10 @@
                                     Visibility="{Binding ElementName=OpacityTextBox, Path=(Validation.HasError), Converter={StaticResource BoolToVisibilityConverter}}" />
                             </StackPanel>
                         </GroupBox>
+                        <CheckBox
+                            Content="反色"
+                            IsChecked="{Binding InverseColor, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, ElementName=PixelGrid}"
+                            Visibility="{Binding IsCropped, Converter={StaticResource BoolToVisibilityConverter}}" />
                         <Button
                             Margin="0,5"
                             Padding="10,5"

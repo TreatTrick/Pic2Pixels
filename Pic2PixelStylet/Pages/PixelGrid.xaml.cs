@@ -38,6 +38,20 @@ namespace Pic2PixelStylet.Pages
             InitializeComponent();
         }
 
+        public static readonly DependencyProperty InverseColorProperty =
+            DependencyProperty.Register(
+                nameof(InverseColor),
+                typeof(bool),
+                typeof(PixelGrid),
+                new PropertyMetadata(false, OnInverseColorChanged)
+            );
+
+        public bool InverseColor
+        {
+            get { return (bool)GetValue(InverseColorProperty); }
+            set { SetValue(InverseColorProperty, value); }
+        }
+
         public static readonly DependencyProperty CellsProperty = DependencyProperty.Register(
             nameof(Cells),
             typeof(CellInfo[,]),
@@ -64,10 +78,29 @@ namespace Pic2PixelStylet.Pages
 
             int height = pixelGrid.Cells.GetLength(0);
             int width = pixelGrid.Cells.GetLength(1);
-            pixelGrid.CreatePixelGrid(width, height);
+            pixelGrid.CreatePixelGrid(width, height, pixelGrid.InverseColor);
         }
 
-        private void CreatePixelGrid(int width, int height)
+        private static void OnInverseColorChanged(
+            DependencyObject d,
+            DependencyPropertyChangedEventArgs e
+        )
+        {
+            if (d is not PixelGrid pixelGrid)
+                return;
+            if (
+                pixelGrid.Cells is null
+                || pixelGrid.Cells.GetLength(0) == 0
+                || pixelGrid.Cells.GetLength(1) == 0
+            )
+                return;
+
+            int height = pixelGrid.Cells.GetLength(0);
+            int width = pixelGrid.Cells.GetLength(1);
+            pixelGrid.CreatePixelGrid(width, height, pixelGrid.InverseColor);
+        }
+
+        private void CreatePixelGrid(int width, int height, bool isInverse)
         {
             PixelUniformGrid.Children.Clear();
             PixelUniformGrid.Rows = height;
@@ -80,7 +113,7 @@ namespace Pic2PixelStylet.Pages
                     {
                         BorderBrush = Brushes.Black,
                         BorderThickness = new Thickness(1),
-                        Background = Cells[row, col].IsBlue ? Brushes.Blue : Brushes.White,
+                        Background = GetColor(Cells[row, col], isInverse),
                         Tag = Cells[row, col],
                     };
                     Cells[row, col].CellBorder = border;
@@ -88,6 +121,18 @@ namespace Pic2PixelStylet.Pages
                     border.MouseEnter += Pixel_MouseEnter;
                     PixelUniformGrid.Children.Add(border);
                 }
+            }
+        }
+
+        private SolidColorBrush GetColor(CellInfo cell, bool isInverse)
+        {
+            if (isInverse)
+            {
+                return cell.IsBlue ? Brushes.White : Brushes.Blue;
+            }
+            else
+            {
+                return cell.IsBlue ? Brushes.Blue : Brushes.White;
             }
         }
 

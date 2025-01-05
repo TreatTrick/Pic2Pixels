@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
+using System.Windows.Input;
 using Microsoft.Xaml.Behaviors;
 
 namespace Pic2PixelStylet.Behaviors
@@ -24,17 +25,17 @@ namespace Pic2PixelStylet.Behaviors
             set { SetValue(IsSuccessProperty, value); }
         }
 
-        static DependencyProperty ImagePathProperty = DependencyProperty.Register(
-            nameof(ImagePath),
-            typeof(string),
+        static DependencyProperty ImportImageCommandProperty = DependencyProperty.Register(
+            nameof(ImportImageCommand),
+            typeof(ICommand),
             typeof(ImageDragDropBehavior),
             new PropertyMetadata(null)
         );
 
-        public string ImagePath
+        public ICommand ImportImageCommand
         {
-            get { return (string)GetValue(ImagePathProperty); }
-            set { SetValue(ImagePathProperty, value); }
+            get { return (ICommand)GetValue(ImportImageCommandProperty); }
+            set { SetValue(ImportImageCommandProperty, value); }
         }
 
         static DependencyProperty HasErrorProperty = DependencyProperty.Register(
@@ -82,13 +83,14 @@ namespace Pic2PixelStylet.Behaviors
         {
             if (!IsDraggedFileValid(e))
                 return;
-            ImagePath = ((string[])e.Data.GetData(DataFormats.FileDrop))[0];
+            var imagePath = ((string[])e.Data.GetData(DataFormats.FileDrop))[0];
+            ImportImageCommand?.Execute(imagePath);
             IsSuccess = true;
         }
 
         private void AssociatedObject_DragOver(object sender, DragEventArgs e)
         {
-            Debug.WriteLine("DragOver");
+            IsSuccess = false;
             if (!IsDraggedFileValid(e))
             {
                 HasError = true;

@@ -18,7 +18,6 @@ namespace Pic2PixelStylet.Pages
         #region Fields
         private CellInfo[,] _cells;
         private BitmapImage _origianlImage;
-        private string _originalImagePath;
         private double _canvasContainerWidth;
         private double _canvasContainerHeight;
         private double _cropAreaWidth;
@@ -56,16 +55,6 @@ namespace Pic2PixelStylet.Pages
             set { _origianlImage = value; }
         }
 
-        public string OriginalImagePath
-        {
-            get => _originalImagePath;
-            set
-            {
-                OnOriginalImagePathChanged(value);
-                _originalImagePath = value;
-            }
-        }
-
         public double CropAreaWidth
         {
             get => _cropAreaWidth;
@@ -97,6 +86,17 @@ namespace Pic2PixelStylet.Pages
         #endregion
 
         #region PublicMethods
+        public void ImportImage(string path)
+        {
+            OrigianlImage = ImageProcessor.ConvertTo96DpiBitmapImage(path, out bool success);
+            if (!success)
+            {
+                return;
+            }
+            ResizeImage();
+            NotifyOfPropertyChange(nameof(IsImagedLoaded));
+        }
+
         public void ResizeCanvasCommand(System.Windows.Size size)
         {
             _canvasContainerWidth = size.Width;
@@ -193,20 +193,6 @@ namespace Pic2PixelStylet.Pages
                 }
             }
             Cells = newCells;
-        }
-
-        private void OnOriginalImagePathChanged(string path)
-        {
-            if (path == _originalImagePath)
-                return;
-            _originalImagePath = path;
-            OrigianlImage = ImageProcessor.ConvertTo96DpiBitmapImage(path, out bool success);
-            if (!success)
-            {
-                return;
-            }
-            ResizeImage();
-            NotifyOfPropertyChange(nameof(IsImagedLoaded));
         }
 
         private void ResizeImage()

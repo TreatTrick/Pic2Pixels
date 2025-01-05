@@ -86,7 +86,7 @@ namespace Pic2PixelStylet.Behaviors
                 var currentPosition = e.GetPosition(DraggedImage);
                 double offsetX = currentPosition.X - _dragStartPoint.X;
                 double offsetY = currentPosition.Y - _dragStartPoint.Y;
-                DragImageCommand.Execute(new Point(offsetX, offsetY));
+                DragImageCommand?.Execute(new Point(offsetX, offsetY));
                 _dragStartPoint = currentPosition;
             }
         }

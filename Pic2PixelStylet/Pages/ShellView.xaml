@@ -47,9 +47,15 @@
         </Style>
     </Window.Resources>
     <i:Interaction.Behaviors>
-        <behaviors:ImageDragDropBehavior x:Name="ImageDragDropBehavior" ImagePath="{Binding OriginalImagePath, Mode=TwoWay}" />
+        <behaviors:ImageDragDropBehavior x:Name="ImageDragDropBehavior" ImportImageCommand="{s:Action ImportImage}" />
     </i:Interaction.Behaviors>
     <i:Interaction.Triggers>
+        <i:DataTrigger Binding="{Binding IsSuccess, Mode=OneWay, ElementName=ImageDragDropBehavior}" Value="False">
+            <i:ChangePropertyAction
+                PropertyName="IsCropped"
+                TargetObject="{Binding}"
+                Value="False" />
+        </i:DataTrigger>
         <i:EventTrigger EventName="ContentRendered">
             <i:InvokeCommandAction Command="{s:Action ResizeCanvasCommand}">
                 <i:InvokeCommandAction.CommandParameter>
@@ -189,12 +195,19 @@
                                     HorizontalAlignment="Left">
                                     阈值(0~255)：
                                 </TextBlock>
-                                <Slider
-                                    Grid.Row="1"
-                                    Grid.Column="0"
-                                    Maximum="255"
-                                    Minimum="0"
-                                    Value="{Binding Threshold, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                                <Grid>
+                                    <Slider
+                                        x:Name="ThresholdSlider"
+                                        Grid.Row="1"
+                                        Grid.Column="0"
+                                        Maximum="255"
+                                        Minimum="0"
+                                        Value="{Binding Threshold, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}">
+                                        <i:Interaction.Behaviors>
+                                            <behaviors:SliderMouseWheelBehavior />
+                                        </i:Interaction.Behaviors>
+                                    </Slider>
+                                </Grid>
                                 <TextBox
                                     x:Name="ThresholdTextBox"
                                     Grid.Row="1"
@@ -240,7 +253,11 @@
                                     Maximum="1"
                                     Minimum="0"
                                     TickFrequency="0.01"
-                                    Value="{Binding Opacity, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, ElementName=PixelGrid}" />
+                                    Value="{Binding Opacity, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, ElementName=PixelGrid}">
+                                    <i:Interaction.Behaviors>
+                                        <behaviors:SliderMouseWheelBehavior />
+                                    </i:Interaction.Behaviors>
+                                </Slider>
                                 <TextBox
                                     x:Name="OpacityTextBox"
                                     Grid.Row="1"

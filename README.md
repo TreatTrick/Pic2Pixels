@@ -47,10 +47,10 @@ This software is designed to transform images into a pixelated grid view, making
 ## Example Screenshots
 
 ### Before Pixelation
-![Original Image](path/to/before-image.png)
+![Original Image](Example/before-image.png)
 
 ### After Pixelation
-![Pixelated Image](path/to/after-image.png)
+![Pixelated Image](Example/after-image.png)
 
 ---
 

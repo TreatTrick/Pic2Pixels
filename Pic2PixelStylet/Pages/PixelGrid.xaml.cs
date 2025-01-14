@@ -1,17 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows;
+﻿using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
+using System.Windows.Media.Media3D;
 
 namespace Pic2PixelStylet.Pages
 {
@@ -78,7 +69,7 @@ namespace Pic2PixelStylet.Pages
 
             int height = pixelGrid.Cells.GetLength(0);
             int width = pixelGrid.Cells.GetLength(1);
-            pixelGrid.CreatePixelGrid(width, height, pixelGrid.InverseColor);
+            pixelGrid.CreateUniformGrids(width, height, pixelGrid.InverseColor);
         }
 
         private static void OnInverseColorChanged(
@@ -97,14 +88,75 @@ namespace Pic2PixelStylet.Pages
 
             int height = pixelGrid.Cells.GetLength(0);
             int width = pixelGrid.Cells.GetLength(1);
-            pixelGrid.CreatePixelGrid(width, height, pixelGrid.InverseColor);
+            pixelGrid.CreateUniformGrids(width, height, pixelGrid.InverseColor);
         }
 
-        private void CreatePixelGrid(int width, int height, bool isInverse)
+        private void CreateUniformGrids(int width, int height, bool isInverse)
         {
-            PixelUniformGrid.Children.Clear();
-            PixelUniformGrid.Rows = height;
-            PixelUniformGrid.Columns = width;
+            ClearUniformGrids(width, height);
+            CreatePixelGridInner(isInverse, width, height);
+            CreateTopBottomUniformGrid(width);
+            CreateLeftRightUniformGrid(height);
+        }
+
+        private void CreateLeftRightUniformGrid(int height)
+        {
+            for (int row = 0; row < height; row++)
+            {
+                var realRow = row + 1;
+                if (realRow % 5 == 0)
+                {
+                    LeftUniformGrid.Children.Add(CreateTextBlock(realRow, InverseColor));
+                    RightUniformGrid.Children.Add(CreateTextBlock(realRow, InverseColor));
+                }
+                else
+                {
+                    LeftUniformGrid.Children.Add(CreateTransparentBorder());
+                    RightUniformGrid.Children.Add(CreateTransparentBorder());
+                }
+            }
+        }
+
+        private void CreateTopBottomUniformGrid(int width)
+        {
+            for (int col = 0; col < width; col++)
+            {
+                var realCol = col + 1;
+                if (realCol % 5 == 0)
+                {
+                    TopUniformGrid.Children.Add(CreateTextBlock(realCol, InverseColor));
+                    BottomUniformGrid.Children.Add(CreateTextBlock(realCol, InverseColor));
+                }
+                else
+                {
+                    TopUniformGrid.Children.Add(CreateTransparentBorder());
+                    BottomUniformGrid.Children.Add(CreateTransparentBorder());
+                }
+            }
+        }
+
+        private static Border CreateTransparentBorder()
+        {
+            return new Border
+            {
+                BorderBrush = Brushes.Transparent,
+                BorderThickness = new Thickness(0),
+                Background = Brushes.Transparent,
+            };
+        }
+
+        private static TextBlock CreateTextBlock(int num, bool isInverse)
+        {
+            return new TextBlock
+            {
+                Text = num.ToString(),
+                Foreground = isInverse ? Brushes.Blue : Brushes.White,
+                Background = isInverse ? Brushes.White : Brushes.Blue,
+            };
+        }
+
+        private void CreatePixelGridInner(bool isInverse, int width, int height)
+        {
             for (int row = 0; row < height; row++)
             {
                 for (int col = 0; col < width; col++)
@@ -122,6 +174,29 @@ namespace Pic2PixelStylet.Pages
                     PixelUniformGrid.Children.Add(border);
                 }
             }
+        }
+
+        private void ClearUniformGrids(int width, int height)
+        {
+            PixelUniformGrid.Children.Clear();
+            PixelUniformGrid.Rows = height;
+            PixelUniformGrid.Columns = width;
+
+            TopUniformGrid.Children.Clear();
+            TopUniformGrid.Rows = 1;
+            TopUniformGrid.Columns = width;
+
+            RightUniformGrid.Children.Clear();
+            RightUniformGrid.Rows = height;
+            RightUniformGrid.Columns = 1;
+
+            BottomUniformGrid.Children.Clear();
+            BottomUniformGrid.Rows = 1;
+            BottomUniformGrid.Columns = width;
+
+            LeftUniformGrid.Children.Clear();
+            LeftUniformGrid.Rows = height;
+            LeftUniformGrid.Columns = 1;
         }
 
         private SolidColorBrush GetColor(CellInfo cell, bool isInverse)

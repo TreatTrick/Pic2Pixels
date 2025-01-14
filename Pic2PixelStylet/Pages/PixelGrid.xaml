@@ -5,10 +5,44 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:local="clr-namespace:Pic2PixelStylet.Pages"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-    d:DesignHeight="450"
-    d:DesignWidth="800"
+    d:DesignHeight="550"
+    d:DesignWidth="900"
     mc:Ignorable="d">
     <Grid>
-        <UniformGrid x:Name="PixelUniformGrid" />
+        <Grid.Resources>
+            <Style TargetType="UniformGrid">
+                <Setter Property="Background" Value="{DynamicResource TextOnAccentFillColorPrimaryBrush}" />
+            </Style>
+        </Grid.Resources>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="Auto" />
+            <ColumnDefinition Width="*" />
+            <ColumnDefinition Width="Auto" />
+        </Grid.ColumnDefinitions>
+        <UniformGrid
+            x:Name="TopUniformGrid"
+            Grid.Row="0"
+            Grid.Column="1" />
+        <UniformGrid
+            x:Name="LeftUniformGrid"
+            Grid.Row="1"
+            Grid.Column="0" />
+        <UniformGrid
+            x:Name="PixelUniformGrid"
+            Grid.Row="1"
+            Grid.Column="1" />
+        <UniformGrid
+            x:Name="RightUniformGrid"
+            Grid.Row="1"
+            Grid.Column="2" />
+        <UniformGrid
+            x:Name="BottomUniformGrid"
+            Grid.Row="2"
+            Grid.Column="1" />
     </Grid>
 </UserControl>

@@ -11,9 +11,9 @@
     xmlns:s="https://github.com/canton7/Stylet"
     xmlns:validation="clr-namespace:Pic2PixelStylet.ValidationRules"
     x:Name="MyShellView"
-    Title="图片像素化"
-    Width="900"
-    Height="650"
+    Title="图片像素化v1.1"
+    Width="1200"
+    Height="850"
     AllowDrop="True"
     mc:Ignorable="d">
     <Window.Resources>

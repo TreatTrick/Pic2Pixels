@@ -15,6 +15,7 @@ namespace Pic2PixelStylet
         protected override void Configure()
         {
             // Perform any other configuration before the application starts
+            DbConnection.DbConnection.Db.CodeFirst.InitTables<DbConnection.PixelsHistory>();
         }
     }
 }

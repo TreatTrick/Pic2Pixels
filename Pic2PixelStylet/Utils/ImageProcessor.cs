@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
 using System.Linq;
+using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
@@ -90,6 +91,21 @@ namespace Pic2PixelStylet.Utils
                     bitmapImage.EndInit();
                     return bitmapImage;
                 }
+            }
+        }
+
+        static string GetFileHash(string filePath)
+        {
+            using (var sha256 = SHA256.Create())
+            using (var fileStream = File.OpenRead(filePath))
+            {
+                byte[] hashBytes = sha256.ComputeHash(fileStream);
+                StringBuilder hashStringBuilder = new StringBuilder();
+                foreach (byte b in hashBytes)
+                {
+                    hashStringBuilder.Append(b.ToString("x2"));
+                }
+                return hashStringBuilder.ToString();
             }
         }
     }

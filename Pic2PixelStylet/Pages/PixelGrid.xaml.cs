@@ -1,4 +1,6 @@
-﻿using System.Windows;
+﻿using System.Text.Json;
+using System.Text.Json.Serialization;
+using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
@@ -9,6 +11,8 @@ namespace Pic2PixelStylet.Pages
     public struct CellInfo
     {
         public bool IsBlue;
+
+        [JsonIgnore]
         public Border CellBorder;
         public int Row;
         public int Column;

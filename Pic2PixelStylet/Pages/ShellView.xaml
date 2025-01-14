@@ -79,7 +79,7 @@
                         <i:InvokeCommandAction Command="{s:Action ResizeCanvasCommand}" EventArgsParameterPath="NewSize" />
                     </i:EventTrigger>
                     <i:EventTrigger EventName="MouseWheel">
-                        <i:InvokeCommandAction Command="{s:Action ZoomCommand}" EventArgsParameterPath="Delta" />
+                        <i:InvokeCommandAction Command="{s:Action ZoomCommand}" PassEventArgsToCommand="True" />
                     </i:EventTrigger>
                 </i:Interaction.Triggers>
                 <i:Interaction.Behaviors>

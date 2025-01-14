@@ -5,6 +5,7 @@ using System.Drawing;
 using System.Runtime.CompilerServices;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using Pic2PixelStylet.Utils;
@@ -77,8 +78,17 @@ namespace Pic2PixelStylet.Pages
         #region Constructor
         public ShellViewModel()
         {
-            PixelRows = 20;
-            PixelCols = 51;
+            string[] args = Environment.GetCommandLineArgs();
+            if (args.Length == 3)
+            {
+                PixelRows = int.Parse(args[2]);
+                PixelCols = int.Parse(args[1]);
+            }
+            else
+            {
+                PixelRows = 21;
+                PixelCols = 55;
+            }
             _cells = new CellInfo[PixelRows, PixelCols];
             Threshold = 128;
             ScaleFactor = 1;
@@ -105,12 +115,15 @@ namespace Pic2PixelStylet.Pages
             ResizeImage();
         }
 
-        public void ZoomCommand(int Delta)
+        public void ZoomCommand(MouseWheelEventArgs e)
         {
             if (IsCropped)
                 return;
-            double zoomFactor = Delta > 0 ? 1.1 : 0.9;
+            double zoomFactor = e.Delta > 0 ? 1.1 : 0.9;
             ScaleFactor *= zoomFactor;
+            var oriPoint = e.GetPosition(View) - new Point(ImageLeft, ImageTop);
+            var newPoint = new Point(oriPoint.X * zoomFactor, oriPoint.Y * zoomFactor);
+            DragImage(new Point(oriPoint.X - newPoint.X, oriPoint.Y - newPoint.Y));
         }
 
         public void DragImage(System.Windows.Point offsetPoint)

@@ -79,17 +79,57 @@ namespace Pic2PixelStylet.Utils
             }
             using (Bitmap bitmap = new Bitmap(imagePath))
             {
-                bitmap.SetResolution(96, 96);
-                using (MemoryStream memoryStream = new MemoryStream())
+                return BitmapToBitmapImage(bitmap);
+            }
+        }
+
+        public static BitmapImage ConvertTo96DpiBitmapImage(
+            BitmapSource bitmapSource,
+            out bool success
+        )
+        {
+            success = true;
+            if (bitmapSource == null)
+            {
+                success = false;
+                return new BitmapImage();
+            }
+            using (Bitmap bitmap = BitmapSourceToBitmap(bitmapSource))
+            {
+                return BitmapToBitmapImage(bitmap);
+            }
+        }
+
+        #region Private Methods
+        private static BitmapImage BitmapToBitmapImage(Bitmap bitmap)
+        {
+            bitmap.SetResolution(96, 96);
+            using (MemoryStream memoryStream = new MemoryStream())
+            {
+                bitmap.Save(memoryStream, System.Drawing.Imaging.ImageFormat.Png);
+                memoryStream.Seek(0, SeekOrigin.Begin);
+                BitmapImage bitmapImage = new BitmapImage();
+                bitmapImage.BeginInit();
+                bitmapImage.StreamSource = memoryStream;
+                bitmapImage.CacheOption = BitmapCacheOption.OnLoad;
+                bitmapImage.EndInit();
+                return bitmapImage;
+            }
+        }
+
+        private static Bitmap BitmapSourceToBitmap(BitmapSource bitmapSource)
+        {
+            if (bitmapSource == null)
+                throw new ArgumentNullException(nameof(bitmapSource));
+
+            using (MemoryStream memoryStream = new MemoryStream())
+            {
+                BitmapEncoder encoder = new PngBitmapEncoder();
+                encoder.Frames.Add(BitmapFrame.Create(bitmapSource));
+                encoder.Save(memoryStream);
+                using (Bitmap bitmap = new Bitmap(memoryStream))
                 {
-                    bitmap.Save(memoryStream, System.Drawing.Imaging.ImageFormat.Png);
-                    memoryStream.Seek(0, SeekOrigin.Begin);
-                    BitmapImage bitmapImage = new BitmapImage();
-                    bitmapImage.BeginInit();
-                    bitmapImage.StreamSource = memoryStream;
-                    bitmapImage.CacheOption = BitmapCacheOption.OnLoad;
-                    bitmapImage.EndInit();
-                    return bitmapImage;
+                    return new Bitmap(bitmap);
                 }
             }
         }
@@ -108,5 +148,6 @@ namespace Pic2PixelStylet.Utils
                 return hashStringBuilder.ToString();
             }
         }
+        #endregion
     }
 }

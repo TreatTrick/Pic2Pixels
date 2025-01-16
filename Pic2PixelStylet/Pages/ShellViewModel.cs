@@ -28,6 +28,7 @@ namespace Pic2PixelStylet.Pages
         #endregion
 
         #region properties
+        public string ErrorMessage { get; set; }
         public bool IsImagedLoaded => _origianlImage != null;
         public double ScaleFactor { get; set; }
         public double ImageLeft { get; set; }
@@ -39,6 +40,7 @@ namespace Pic2PixelStylet.Pages
         public int PixelRows { get; set; }
         public Rect CropRect { get; set; }
         public Rect ContainerRect { get; set; }
+        public bool HasError { get; set; }
 
         public int Threshold
         {
@@ -105,6 +107,69 @@ namespace Pic2PixelStylet.Pages
             }
             ResizeImage();
             NotifyOfPropertyChange(nameof(IsImagedLoaded));
+        }
+
+        public void PasteCommand()
+        {
+            if (Clipboard.ContainsImage())
+            {
+                BitmapSource clipboardImage = Clipboard.GetImage();
+                if (clipboardImage != null)
+                {
+                    OrigianlImage = ImageProcessor.ConvertTo96DpiBitmapImage(
+                        clipboardImage,
+                        out bool success
+                    );
+                    if (!success)
+                    {
+                        return;
+                    }
+                    ResizeImage();
+                    NotifyOfPropertyChange(nameof(IsImagedLoaded));
+                }
+            }
+            else if (Clipboard.ContainsText())
+            {
+                //string clipboardText = Clipboard.GetText().Trim();
+                //if (IsImagePath(clipboardText))
+                //{
+                //    ImagePath = clipboardText;
+                //    try
+                //    {
+                //        PastedImage = new BitmapImage(new Uri(clipboardText, UriKind.Absolute));
+                //    }
+                //    catch (Exception ex)
+                //    {
+                //        MessageBox.Show(
+                //            $"无法加载图片：{ex.Message}",
+                //            "错误",
+                //            MessageBoxButton.OK,
+                //            MessageBoxImage.Error
+                //        );
+                //    }
+                //}
+                //else
+                //{
+                //    MessageBox.Show(
+                //        "剪贴板中没有图片或图片路径。",
+                //        "粘贴",
+                //        MessageBoxButton.OK,
+                //        MessageBoxImage.Warning
+                //    );
+                //}
+            }
+            else
+            {
+                HasError = true;
+                ErrorMessage = "只能粘贴图片或者JPG、PNG所在的路径！";
+                NotifyOfPropertyChange(nameof(HasError));
+            }
+        }
+
+        public void DragOverHasErrorChangeCommand(bool hasError)
+        {
+            HasError = hasError;
+            ErrorMessage = "只支持单张JPG或者PNG文件！";
         }
 
         public void ResizeCanvasCommand(System.Windows.Size size)

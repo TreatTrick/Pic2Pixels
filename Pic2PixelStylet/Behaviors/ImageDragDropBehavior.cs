@@ -38,17 +38,17 @@ namespace Pic2PixelStylet.Behaviors
             set { SetValue(ImportImageCommandProperty, value); }
         }
 
-        static DependencyProperty HasErrorProperty = DependencyProperty.Register(
-            nameof(HasError),
-            typeof(bool),
+        static DependencyProperty HasErrorChangeCommandProperty = DependencyProperty.Register(
+            nameof(HasErrorChangeCommand),
+            typeof(ICommand),
             typeof(ImageDragDropBehavior),
-            new PropertyMetadata(false)
+            new PropertyMetadata(null)
         );
 
-        public bool HasError
+        public ICommand HasErrorChangeCommand
         {
-            get { return (bool)GetValue(HasErrorProperty); }
-            set { SetValue(HasErrorProperty, value); }
+            get { return (ICommand)GetValue(HasErrorChangeCommandProperty); }
+            set { SetValue(HasErrorChangeCommandProperty, value); }
         }
 
         static DependencyProperty ErrorMessageProperty = DependencyProperty.Register(
@@ -93,11 +93,11 @@ namespace Pic2PixelStylet.Behaviors
             IsSuccess = false;
             if (!IsDraggedFileValid(e))
             {
-                HasError = true;
+                HasErrorChangeCommand?.Execute(true);
                 e.Effects = DragDropEffects.None;
                 return;
             }
-            HasError = false;
+            HasErrorChangeCommand?.Execute(false);
             e.Effects = DragDropEffects.Copy; // 允许拖动
         }
 

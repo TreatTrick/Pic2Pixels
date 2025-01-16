@@ -21,6 +21,7 @@
         <converters:MouseEventArgsToPointConverter x:Key="MouseEventArgsToPointConverter" />
         <converters:WidthHeightToSizeConverter x:Key="SizeConverter" />
         <converters:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter" />
+        <converters:BoolOrToVisibilityConverter x:Key="BoolOrToVisibilityConverter" />
         <Style TargetType="GroupBox">
             <Setter Property="SnapsToDevicePixels" Value="True" />
             <Setter Property="Margin" Value="3" />
@@ -46,8 +47,18 @@
             </Setter>
         </Style>
     </Window.Resources>
+    <Window.InputBindings>
+        <KeyBinding
+            Key="V"
+            Command="{s:Action PasteCommand}"
+            Modifiers="Control" />
+    </Window.InputBindings>
+
     <i:Interaction.Behaviors>
-        <behaviors:ImageDragDropBehavior x:Name="ImageDragDropBehavior" ImportImageCommand="{s:Action ImportImage}" />
+        <behaviors:ImageDragDropBehavior
+            x:Name="ImageDragDropBehavior"
+            HasErrorChangeCommand="{s:Action DragOverHasErrorChangeCommand}"
+            ImportImageCommand="{s:Action ImportImage}" />
     </i:Interaction.Behaviors>
     <i:Interaction.Triggers>
         <i:DataTrigger Binding="{Binding IsSuccess, Mode=OneWay, ElementName=ImageDragDropBehavior}" Value="False">
@@ -154,7 +165,7 @@
                                 </TextBox>
                                 <TextBlock
                                     Foreground="{DynamicResource SystemFillColorCriticalBrush}"
-                                    Text="输入值必须在1~1000之间"
+                                    Text="{Binding ElementName=PixelColsTextBox, Path=(Validation.Errors)[0]}"
                                     TextWrapping="Wrap"
                                     Visibility="{Binding ElementName=PixelColsTextBox, Path=(Validation.HasError), Converter={StaticResource BoolToVisibilityConverter}}" />
                             </StackPanel>
@@ -233,7 +244,7 @@
                                     Grid.Column="0"
                                     Grid.ColumnSpan="2"
                                     Foreground="{DynamicResource SystemFillColorCriticalBrush}"
-                                    Text="输入值必须在0~255之间"
+                                    Text="{Binding ElementName=ThresholdTextBox, Path=(Validation.Errors)[0]}"
                                     TextWrapping="Wrap"
                                     Visibility="{Binding ElementName=ThresholdTextBox, Path=(Validation.HasError), Converter={StaticResource BoolToVisibilityConverter}}" />
                             </StackPanel>
@@ -250,8 +261,11 @@
                                 <Slider
                                     Grid.Row="1"
                                     Grid.Column="0"
+                                    IsSnapToTickEnabled="False"
+                                    LargeChange="0.01"
                                     Maximum="1"
                                     Minimum="0"
+                                    SmallChange="0.01"
                                     TickFrequency="0.01"
                                     Value="{Binding Opacity, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, ElementName=PixelGrid}">
                                     <i:Interaction.Behaviors>
@@ -285,7 +299,7 @@
                                     Grid.Column="0"
                                     Grid.ColumnSpan="2"
                                     Foreground="{DynamicResource SystemFillColorCriticalBrush}"
-                                    Text="输入值必须是0到1之间的小数"
+                                    Text="{Binding ElementName=OpacityTextBox, Path=(Validation.Errors)[0]}"
                                     TextWrapping="Wrap"
                                     Visibility="{Binding ElementName=OpacityTextBox, Path=(Validation.HasError), Converter={StaticResource BoolToVisibilityConverter}}" />
                             </StackPanel>
@@ -328,14 +342,14 @@
                         VerticalAlignment="Center"
                         FontSize="32"
                         Text="将单张JPG或PNG图片拖动到此处"
-                        Visibility="{Binding ElementName=ImageDragDropBehavior, Path=HasError, Converter={StaticResource BoolToVisibilityConverter}, ConverterParameter=inverse}" />
+                        Visibility="{Binding HasError, Mode=OneWay, Converter={StaticResource BoolToVisibilityConverter}, ConverterParameter=inverse}" />
                     <TextBlock
                         HorizontalAlignment="Center"
                         VerticalAlignment="Center"
                         FontSize="32"
                         Foreground="{DynamicResource SystemFillColorCriticalBrush}"
-                        Text="{Binding ElementName=ImageDragDropBehavior, Path=ErrorMessage, Mode=OneTime}"
-                        Visibility="{Binding ElementName=ImageDragDropBehavior, Path=HasError, Converter={StaticResource BoolToVisibilityConverter}}" />
+                        Text="{Binding ErrorMessage, Mode=OneWay}"
+                        Visibility="{Binding HasError, Mode=OneWay, Converter={StaticResource BoolToVisibilityConverter}}" />
                 </StackPanel>
             </Border>
             <Rectangle

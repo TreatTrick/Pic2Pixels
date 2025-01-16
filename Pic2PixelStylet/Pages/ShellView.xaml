@@ -22,6 +22,7 @@
         <converters:WidthHeightToSizeConverter x:Key="SizeConverter" />
         <converters:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter" />
         <converters:BoolOrToVisibilityConverter x:Key="BoolOrToVisibilityConverter" />
+        <converters:ValidationErrorsConverter x:Key="ValidationErrorsConverter" />
         <Style TargetType="GroupBox">
             <Setter Property="SnapsToDevicePixels" Value="True" />
             <Setter Property="Margin" Value="3" />
@@ -165,7 +166,7 @@
                                 </TextBox>
                                 <TextBlock
                                     Foreground="{DynamicResource SystemFillColorCriticalBrush}"
-                                    Text="{Binding ElementName=PixelColsTextBox, Path=(Validation.Errors)[0]}"
+                                    Text="{Binding ElementName=PixelColsTextBox, Path=(Validation.Errors), Converter={StaticResource ValidationErrorsConverter}}"
                                     TextWrapping="Wrap"
                                     Visibility="{Binding ElementName=PixelColsTextBox, Path=(Validation.HasError), Converter={StaticResource BoolToVisibilityConverter}}" />
                             </StackPanel>
@@ -244,7 +245,7 @@
                                     Grid.Column="0"
                                     Grid.ColumnSpan="2"
                                     Foreground="{DynamicResource SystemFillColorCriticalBrush}"
-                                    Text="{Binding ElementName=ThresholdTextBox, Path=(Validation.Errors)[0]}"
+                                    Text="{Binding ElementName=ThresholdTextBox, Path=(Validation.Errors), Converter={StaticResource ValidationErrorsConverter}}"
                                     TextWrapping="Wrap"
                                     Visibility="{Binding ElementName=ThresholdTextBox, Path=(Validation.HasError), Converter={StaticResource BoolToVisibilityConverter}}" />
                             </StackPanel>
@@ -299,7 +300,7 @@
                                     Grid.Column="0"
                                     Grid.ColumnSpan="2"
                                     Foreground="{DynamicResource SystemFillColorCriticalBrush}"
-                                    Text="{Binding ElementName=OpacityTextBox, Path=(Validation.Errors)[0]}"
+                                    Text="{Binding ElementName=OpacityTextBox, Path=(Validation.Errors), Converter={StaticResource ValidationErrorsConverter}}"
                                     TextWrapping="Wrap"
                                     Visibility="{Binding ElementName=OpacityTextBox, Path=(Validation.HasError), Converter={StaticResource BoolToVisibilityConverter}}" />
                             </StackPanel>

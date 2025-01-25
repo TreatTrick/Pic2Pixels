@@ -300,6 +300,7 @@
                             </StackPanel>
                         </GroupBox>
                         <CheckBox
+                            x:Name="InverseColorCheckBox"
                             Content="反色"
                             IsChecked="{Binding InverseColor, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, ElementName=PixelGrid}"
                             Visibility="{Binding IsCropped, Converter={StaticResource BoolToVisibilityConverter}}" />
@@ -326,8 +327,12 @@
                         <Button
                             Command="{s:Action SaveImage}"
                             Content="保存当前项目"
-                            Style="{DynamicResource AccentButtonStyle}"
-                            Visibility="{Binding IsCropped, Converter={StaticResource BoolToVisibilityConverter}}" />
+                            Style="{DynamicResource AccentButtonStyle}" />
+                        <Button
+                            Command="{s:Action ClearHistoryCommand}"
+                            Content="清空历史项目"
+                            Style="{DynamicResource AccentButtonStyle}" />
+                        <CheckBox Content="仅展示当前图片的项目" IsChecked="{Binding ShowCurrentImageHistory, Mode=TwoWay}" />
                         <DataGrid
                             AutoGenerateColumns="False"
                             CanUserAddRows="False"
@@ -335,12 +340,12 @@
                             IsReadOnly="True"
                             IsSynchronizedWithCurrentItem="True"
                             ItemsSource="{Binding HistoryCells}"
+                            LoadingRow="{s:Action DataGrid_LoadingRow}"
                             ScrollViewer.CanContentScroll="False"
                             ScrollViewer.HorizontalScrollBarVisibility="Disabled"
                             ScrollViewer.VerticalScrollBarVisibility="Disabled"
                             SelectedItem="{Binding SelectedCell, Mode=TwoWay}"
-                            SelectionMode="Single"
-                            Visibility="{Binding IsCropped, Converter={StaticResource BoolToVisibilityConverter}}">
+                            SelectionMode="Single">
                             <DataGrid.Columns>
                                 <DataGridTemplateColumn Width="*" Header="项目名">
                                     <DataGridTemplateColumn.CellTemplate>
@@ -411,5 +416,40 @@
                 StrokeDashArray="2,3"
                 StrokeThickness="3" />
         </Grid>
+        <Popup
+            Width="300"
+            Height="155"
+            IsOpen="{Binding IsShowPixelGridToolTip, Mode=OneWay}"
+            Placement="Left"
+            PlacementTarget="{Binding MouseOverGridRow, Mode=OneWay}">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                </Grid.RowDefinitions>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+                <TextBlock
+                    Grid.Row="0"
+                    Grid.Column="0"
+                    Margin="5"
+                    Text="{Binding MouseOverGridRow.DataContext.ProjectName, Mode=OneWay}" />
+                <TextBlock
+                    Grid.Row="0"
+                    Grid.Column="1"
+                    Margin="5"
+                    Text="{Binding MouseOverGridRow.DataContext.DateTime, Mode=OneWay, StringFormat=yy-MM-dd HH:mm:ss}" />
+                <local:PixelGrid
+                    Grid.Row="1"
+                    Grid.Column="0"
+                    Grid.ColumnSpan="3"
+                    Cells="{Binding MouseOverCells, Mode=OneWay}"
+                    InverseColor="{Binding IsChecked, Mode=OneWay, ElementName=InverseColorCheckBox}"
+                    IsShowRuler="False" />
+            </Grid>
+        </Popup>
     </Grid>
 </Window>

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Drawing;
@@ -33,11 +34,13 @@ namespace Pic2PixelStylet.Pages
         private double _imageLeftToCropAreaLeftRatio = 0;
         private double _imageTopToCropAreaTopRatio = 0;
         private double _imageSizeToCropAreaSizeRatio = 1;
-        private PixelsHistory _selectedCell;
-        private BindableCollection<PixelsHistory> _historyCells;
+        private bool _isShowCurrenImageHistory = true;
         #endregion
 
         #region properties
+        public bool IsShowPixelGridToolTip { get; set; } = false;
+        public DataGridRow MouseOverGridRow { get; set; }
+        public CellInfo[,] MouseOverCells { get; set; }
         public string ErrorMessage { get; set; }
         public bool IsImagedLoaded => _originalImage != null;
         public double ScaleFactor { get; set; }
@@ -91,17 +94,19 @@ namespace Pic2PixelStylet.Pages
             set { _cells = value; }
         }
 
-        public PixelsHistory SelectedCell
+        public PixelsHistory SelectedCell { get; set; }
+
+        public BindableCollection<PixelsHistory> HistoryCells { get; set; }
+        public bool ShowCurrentImageHistory
         {
-            get => _selectedCell;
-            set { _selectedCell = value; }
+            get => _isShowCurrenImageHistory;
+            set
+            {
+                _isShowCurrenImageHistory = value;
+                LoadHistoryCells();
+            }
         }
 
-        public BindableCollection<PixelsHistory> HistoryCells
-        {
-            get => _historyCells;
-            set { _historyCells = value; }
-        }
         #endregion
 
         #region Constructor
@@ -127,6 +132,15 @@ namespace Pic2PixelStylet.Pages
         #endregion
 
         #region PublicMethods
+
+        public void DataGrid_LoadingRow(object sender, DataGridRowEventArgs e)
+        {
+            e.Row.MouseEnter -= DataGridRow_MouseEnter;
+            e.Row.MouseEnter += DataGridRow_MouseEnter;
+
+            e.Row.MouseLeave -= DataGridRow_MouseLeave;
+            e.Row.MouseLeave += DataGridRow_MouseLeave;
+        }
 
         public void SaveImage()
         {
@@ -233,13 +247,42 @@ namespace Pic2PixelStylet.Pages
             try
             {
                 File.Delete(history.DataFilePath);
+                DbConnection.DbConnection.Db.Deleteable(history).ExecuteCommand();
+                LoadHistoryCells();
             }
             catch (Exception e)
             {
                 MessageBox.Show(e.ToString());
             }
-            DbConnection.DbConnection.Db.Deleteable(history).ExecuteCommand();
-            LoadHistoryCells();
+        }
+
+        public void ClearHistoryCommand()
+        {
+            try
+            {
+                if (_isShowCurrenImageHistory)
+                {
+                    foreach (var item in HistoryCells)
+                    {
+                        File.Delete(item.DataFilePath);
+                        DbConnection.DbConnection.Db.Deleteable(item).ExecuteCommand();
+                    }
+                    LoadHistoryCells();
+                }
+                else
+                {
+                    Directory.Delete("CellInfo", true);
+                    DbConnection
+                        .DbConnection.Db.Deleteable<PixelsHistory>()
+                        .Where(it => true)
+                        .ExecuteCommand();
+                    LoadHistoryCells();
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.ToString());
+            }
         }
 
         public void DragOverHasErrorChangeCommand(bool hasError)
@@ -294,14 +337,54 @@ namespace Pic2PixelStylet.Pages
         #endregion
 
         #region PrivateMethods
+
+        private void DataGridRow_MouseEnter(object sender, MouseEventArgs e)
+        {
+            try
+            {
+                IsShowPixelGridToolTip = false;
+                var row = sender as DataGridRow;
+                if (row == null)
+                    return;
+                MouseOverGridRow = row;
+                var pixelHistory = row.DataContext as PixelsHistory;
+                if (pixelHistory == null)
+                    return;
+
+                MouseOverCells = CellSerializer.LoadFromFile(pixelHistory.DataFilePath);
+                IsShowPixelGridToolTip = true;
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.ToString());
+            }
+        }
+
+        private void DataGridRow_MouseLeave(object sender, MouseEventArgs e)
+        {
+            IsShowPixelGridToolTip = false;
+        }
+
         private void LoadHistoryCells()
         {
             HistoryCells = new BindableCollection<PixelsHistory>();
-            var history = DbConnection
-                .DbConnection.Db.Queryable<PixelsHistory>()
-                .Where(x => x.PictureHash == _imageHash)
-                .OrderByDescending(x => x.DateTime)
-                .ToList();
+            List<PixelsHistory> history;
+            if (_isShowCurrenImageHistory)
+            {
+                history = DbConnection
+                    .DbConnection.Db.Queryable<PixelsHistory>()
+                    .Where(x => x.PictureHash == _imageHash)
+                    .OrderByDescending(x => x.DateTime)
+                    .ToList();
+            }
+            else
+            {
+                history = DbConnection
+                    .DbConnection.Db.Queryable<PixelsHistory>()
+                    .OrderByDescending(x => x.DateTime)
+                    .ToList();
+            }
+
             foreach (var item in history)
             {
                 HistoryCells.Add(item);

@@ -1,4 +1,6 @@
-﻿using System.Text.Json;
+﻿using System.ComponentModel;
+using System.Runtime.CompilerServices;
+using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Windows;
 using System.Windows.Controls;
@@ -32,6 +34,42 @@ namespace Pic2PixelStylet.Pages
         public PixelGrid()
         {
             InitializeComponent();
+        }
+
+        public static readonly DependencyProperty IsShowRulerProperty = DependencyProperty.Register(
+            nameof(IsShowRuler),
+            typeof(bool),
+            typeof(PixelGrid),
+            new PropertyMetadata(true, OnIsShowRulerChanged)
+        );
+
+        public bool IsShowRuler
+        {
+            get { return (bool)GetValue(IsShowRulerProperty); }
+            set { SetValue(IsShowRulerProperty, value); }
+        }
+
+        private static void OnIsShowRulerChanged(
+            DependencyObject d,
+            DependencyPropertyChangedEventArgs e
+        )
+        {
+            if (d is not PixelGrid pixelGrid)
+                return;
+            if (pixelGrid.IsShowRuler)
+            {
+                pixelGrid.TopUniformGrid.Visibility = Visibility.Visible;
+                pixelGrid.RightUniformGrid.Visibility = Visibility.Visible;
+                pixelGrid.BottomUniformGrid.Visibility = Visibility.Visible;
+                pixelGrid.LeftUniformGrid.Visibility = Visibility.Visible;
+            }
+            else
+            {
+                pixelGrid.TopUniformGrid.Visibility = Visibility.Collapsed;
+                pixelGrid.RightUniformGrid.Visibility = Visibility.Collapsed;
+                pixelGrid.BottomUniformGrid.Visibility = Visibility.Collapsed;
+                pixelGrid.LeftUniformGrid.Visibility = Visibility.Collapsed;
+            }
         }
 
         public static readonly DependencyProperty InverseColorProperty =
@@ -157,6 +195,7 @@ namespace Pic2PixelStylet.Pages
                 Text = num.ToString(),
                 Foreground = isInverse ? Brushes.Blue : Brushes.White,
                 Background = isInverse ? Brushes.White : Brushes.Blue,
+                TextAlignment = TextAlignment.Center,
             };
         }
 

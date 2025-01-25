@@ -58,7 +58,6 @@
                 Style="{DynamicResource AccentButtonStyle}" />
             <Button
                 Width="80"
-                Background="{DynamicResource SystemFillColorCriticalBrush}"
                 Click="CancelButton_Click"
                 Content="取消" />
         </StackPanel>

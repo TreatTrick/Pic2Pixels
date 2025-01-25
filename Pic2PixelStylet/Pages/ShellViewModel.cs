@@ -18,7 +18,7 @@ namespace Pic2PixelStylet.Pages
     {
         #region Fields
         private CellInfo[,] _cells;
-        private BitmapImage _origianlImage;
+        private BitmapImage _originalImage;
         private double _canvasContainerWidth;
         private double _canvasContainerHeight;
         private double _cropAreaWidth;
@@ -32,7 +32,7 @@ namespace Pic2PixelStylet.Pages
 
         #region properties
         public string ErrorMessage { get; set; }
-        public bool IsImagedLoaded => _origianlImage != null;
+        public bool IsImagedLoaded => _originalImage != null;
         public double ScaleFactor { get; set; }
         public double ImageLeft { get; set; }
         public double ImageTop { get; set; }
@@ -44,6 +44,7 @@ namespace Pic2PixelStylet.Pages
         public Rect CropRect { get; set; }
         public Rect ContainerRect { get; set; }
         public bool HasError { get; set; }
+        public bool HasImage { get; set; }
 
         public int Threshold
         {
@@ -55,10 +56,10 @@ namespace Pic2PixelStylet.Pages
             }
         }
 
-        public BitmapImage OrigianlImage
+        public BitmapImage OriginalImage
         {
-            get => _origianlImage;
-            set { _origianlImage = value; }
+            get => _originalImage;
+            set { _originalImage = value; }
         }
 
         public double CropAreaWidth
@@ -105,7 +106,7 @@ namespace Pic2PixelStylet.Pages
         #region PublicMethods
         public void ImportImage(string path)
         {
-            OrigianlImage = ImageProcessor.ConvertTo96DpiBitmapImage(path, out bool success);
+            OriginalImage = ImageProcessor.ConvertTo96DpiBitmapImage(path, out bool success);
             if (!success)
             {
                 return;
@@ -116,58 +117,56 @@ namespace Pic2PixelStylet.Pages
 
         public void PasteCommand()
         {
-            if (Clipboard.ContainsImage())
+            try
             {
-                BitmapSource clipboardImage = Clipboard.GetImage();
-                if (clipboardImage != null)
+                HasImage = false;
+                if (Clipboard.ContainsImage())
                 {
-                    OrigianlImage = ImageProcessor.ConvertTo96DpiBitmapImage(
-                        clipboardImage,
+                    BitmapSource clipboardImage = Clipboard.GetImage();
+                    if (clipboardImage != null)
+                    {
+                        OriginalImage = ImageProcessor.ConvertTo96DpiBitmapImage(
+                            clipboardImage,
+                            out bool success
+                        );
+                        if (!success)
+                        {
+                            return;
+                        }
+                        HasImage = true;
+                    }
+                }
+                else if (Clipboard.ContainsText())
+                {
+                    string clipboardText = Clipboard.GetText().Trim();
+                    OriginalImage = ImageProcessor.ConvertTo96DpiBitmapImage(
+                        clipboardText,
                         out bool success
                     );
                     if (!success)
                     {
                         return;
                     }
+                    if (OriginalImage == null)
+                    {
+                        return;
+                    }
+                    HasImage = true;
+                }
+            }
+            finally
+            {
+                if (!HasImage)
+                {
+                    HasError = true;
+                    ErrorMessage = "只能粘贴JPG、PNG图片或者其所在的路径！";
+                    NotifyOfPropertyChange(nameof(HasError));
+                }
+                else
+                {
                     InitialImage();
                     NotifyOfPropertyChange(nameof(IsImagedLoaded));
                 }
-            }
-            else if (Clipboard.ContainsText())
-            {
-                //string clipboardText = Clipboard.GetText().Trim();
-                //if (IsImagePath(clipboardText))
-                //{
-                //    ImagePath = clipboardText;
-                //    try
-                //    {
-                //        PastedImage = new BitmapImage(new Uri(clipboardText, UriKind.Absolute));
-                //    }
-                //    catch (Exception ex)
-                //    {
-                //        MessageBox.Show(
-                //            $"无法加载图片：{ex.Message}",
-                //            "错误",
-                //            MessageBoxButton.OK,
-                //            MessageBoxImage.Error
-                //        );
-                //    }
-                //}
-                //else
-                //{
-                //    MessageBox.Show(
-                //        "剪贴板中没有图片或图片路径。",
-                //        "粘贴",
-                //        MessageBoxButton.OK,
-                //        MessageBoxImage.Warning
-                //    );
-                //}
-            }
-            else
-            {
-                HasError = true;
-                ErrorMessage = "只能粘贴图片或者JPG、PNG所在的路径！";
-                NotifyOfPropertyChange(nameof(HasError));
             }
         }
 
@@ -191,7 +190,7 @@ namespace Pic2PixelStylet.Pages
                 return;
             double zoomFactor = e.Delta > 0 ? 1.1 : 0.9;
             ScaleFactor *= zoomFactor;
-            _imageSizeToCropAreaSizeRatio = OrigianlImage.Width * ScaleFactor / (_cropAreaWidth);
+            _imageSizeToCropAreaSizeRatio = OriginalImage.Width * ScaleFactor / (_cropAreaWidth);
             var oriPoint = e.GetPosition(View) - new Point(ImageLeft, ImageTop);
             var newPoint = new Point(oriPoint.X * zoomFactor, oriPoint.Y * zoomFactor);
             DragImage(new Point(oriPoint.X - newPoint.X, oriPoint.Y - newPoint.Y));
@@ -209,7 +208,7 @@ namespace Pic2PixelStylet.Pages
 
         public void CropImage()
         {
-            if (OrigianlImage == null)
+            if (OriginalImage == null)
                 return;
 
             if (IsCropped)
@@ -230,7 +229,7 @@ namespace Pic2PixelStylet.Pages
             double startY = ImageTop - CropTop;
 
             var croppedBitmap = ImageProcessor.CropImage(
-                OrigianlImage,
+                OriginalImage,
                 startX,
                 startY,
                 _cropAreaWidth,
@@ -283,21 +282,21 @@ namespace Pic2PixelStylet.Pages
 
         private void ResizeImage()
         {
-            if (OrigianlImage == null)
+            if (OriginalImage == null)
                 return;
-            double imageX = OrigianlImage.Width;
-            double imageY = OrigianlImage.Height;
-            ScaleFactor = _imageSizeToCropAreaSizeRatio * _cropAreaWidth / OrigianlImage.Width;
+            double imageX = OriginalImage.Width;
+            double imageY = OriginalImage.Height;
+            ScaleFactor = _imageSizeToCropAreaSizeRatio * _cropAreaWidth / OriginalImage.Width;
             ImageLeft = CropLeft + _imageLeftToCropAreaLeftRatio * _cropAreaWidth;
             ImageTop = CropTop + _imageTopToCropAreaTopRatio * _cropAreaHeight;
         }
 
         private void InitialImage()
         {
-            if (OrigianlImage == null)
+            if (OriginalImage == null)
                 return;
-            double imageX = OrigianlImage.Width;
-            double imageY = OrigianlImage.Height;
+            double imageX = OriginalImage.Width;
+            double imageY = OriginalImage.Height;
             if (imageX > imageY)
             {
                 ScaleFactor = _canvasContainerWidth / imageX;
@@ -308,7 +307,8 @@ namespace Pic2PixelStylet.Pages
             }
             ImageLeft = (_canvasContainerWidth - imageX * ScaleFactor) / 2;
             ImageTop = (_canvasContainerHeight - imageY * ScaleFactor) / 2;
-            _imageSizeToCropAreaSizeRatio = OrigianlImage.Width * ScaleFactor / (_cropAreaWidth);
+
+            _imageSizeToCropAreaSizeRatio = OriginalImage.Width * ScaleFactor / (_cropAreaWidth);
             _imageLeftToCropAreaLeftRatio = (ImageLeft - CropLeft) / _cropAreaWidth;
             _imageTopToCropAreaTopRatio = (ImageTop - CropTop) / _cropAreaHeight;
         }

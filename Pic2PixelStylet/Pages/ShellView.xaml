@@ -54,20 +54,14 @@
             Command="{s:Action PasteCommand}"
             Modifiers="Control" />
     </Window.InputBindings>
-
     <i:Interaction.Behaviors>
         <behaviors:ImageDragDropBehavior
             x:Name="ImageDragDropBehavior"
             HasErrorChangeCommand="{s:Action DragOverHasErrorChangeCommand}"
-            ImportImageCommand="{s:Action ImportImage}" />
+            ImportImageCommand="{s:Action ImportImage}"
+            IsSuccess="{Binding HasImage, Mode=OneWayToSource}" />
     </i:Interaction.Behaviors>
     <i:Interaction.Triggers>
-        <i:DataTrigger Binding="{Binding IsSuccess, Mode=OneWay, ElementName=ImageDragDropBehavior}" Value="False">
-            <i:ChangePropertyAction
-                PropertyName="IsCropped"
-                TargetObject="{Binding}"
-                Value="False" />
-        </i:DataTrigger>
         <i:EventTrigger EventName="ContentRendered">
             <i:InvokeCommandAction Command="{s:Action ResizeCanvasCommand}">
                 <i:InvokeCommandAction.CommandParameter>
@@ -103,7 +97,7 @@
                         Canvas.Top="{Binding ImageTop, Mode=TwoWay}"
                         HorizontalAlignment="Center"
                         VerticalAlignment="Center"
-                        Source="{Binding OrigianlImage, Mode=OneWay}">
+                        Source="{Binding OriginalImage, Mode=OneWay}">
                         <Image.RenderTransform>
                             <TransformGroup>
                                 <ScaleTransform ScaleX="{Binding ScaleFactor, Mode=OneWay}" ScaleY="{Binding ScaleFactor, Mode=OneWay}" />
@@ -329,7 +323,7 @@
                 </Border>
             </ScrollViewer>
         </Grid>
-        <Grid Visibility="{Binding ElementName=ImageDragDropBehavior, Path=IsSuccess, Converter={StaticResource BoolToVisibilityConverter}, ConverterParameter=inverse, Mode=OneWay}">
+        <Grid Visibility="{Binding HasImage, Converter={StaticResource BoolToVisibilityConverter}, ConverterParameter=inverse, Mode=OneWay}">
             <Border Padding="5" Background="{DynamicResource SolidBackgroundFillColorSecondaryBrush}">
                 <StackPanel VerticalAlignment="Center" Orientation="Vertical">
                     <TextBlock

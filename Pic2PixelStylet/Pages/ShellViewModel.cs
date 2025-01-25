@@ -25,6 +25,9 @@ namespace Pic2PixelStylet.Pages
         private double _cropAreaHeight;
         private int _threshold;
         private FormatConvertedBitmap _grayBitmap;
+        private double _imageLeftToCropAreaLeftRatio = 0;
+        private double _imageTopToCropAreaTopRatio = 0;
+        private double _imageSizeToCropAreaSizeRatio = 1;
         #endregion
 
         #region properties
@@ -94,6 +97,8 @@ namespace Pic2PixelStylet.Pages
             _cells = new CellInfo[PixelRows, PixelCols];
             Threshold = 128;
             ScaleFactor = 1;
+            ImageLeft = 0;
+            ImageTop = 0;
         }
         #endregion
 
@@ -105,7 +110,7 @@ namespace Pic2PixelStylet.Pages
             {
                 return;
             }
-            ResizeImage();
+            InitialImage();
             NotifyOfPropertyChange(nameof(IsImagedLoaded));
         }
 
@@ -124,7 +129,7 @@ namespace Pic2PixelStylet.Pages
                     {
                         return;
                     }
-                    ResizeImage();
+                    InitialImage();
                     NotifyOfPropertyChange(nameof(IsImagedLoaded));
                 }
             }
@@ -186,6 +191,7 @@ namespace Pic2PixelStylet.Pages
                 return;
             double zoomFactor = e.Delta > 0 ? 1.1 : 0.9;
             ScaleFactor *= zoomFactor;
+            _imageSizeToCropAreaSizeRatio = OrigianlImage.Width * ScaleFactor / (_cropAreaWidth);
             var oriPoint = e.GetPosition(View) - new Point(ImageLeft, ImageTop);
             var newPoint = new Point(oriPoint.X * zoomFactor, oriPoint.Y * zoomFactor);
             DragImage(new Point(oriPoint.X - newPoint.X, oriPoint.Y - newPoint.Y));
@@ -197,6 +203,8 @@ namespace Pic2PixelStylet.Pages
                 return;
             ImageLeft += offsetPoint.X;
             ImageTop += offsetPoint.Y;
+            _imageLeftToCropAreaLeftRatio = (ImageLeft - CropLeft) / _cropAreaWidth;
+            _imageTopToCropAreaTopRatio = (ImageTop - CropTop) / _cropAreaHeight;
         }
 
         public void CropImage()
@@ -279,6 +287,17 @@ namespace Pic2PixelStylet.Pages
                 return;
             double imageX = OrigianlImage.Width;
             double imageY = OrigianlImage.Height;
+            ScaleFactor = _imageSizeToCropAreaSizeRatio * _cropAreaWidth / OrigianlImage.Width;
+            ImageLeft = CropLeft + _imageLeftToCropAreaLeftRatio * _cropAreaWidth;
+            ImageTop = CropTop + _imageTopToCropAreaTopRatio * _cropAreaHeight;
+        }
+
+        private void InitialImage()
+        {
+            if (OrigianlImage == null)
+                return;
+            double imageX = OrigianlImage.Width;
+            double imageY = OrigianlImage.Height;
             if (imageX > imageY)
             {
                 ScaleFactor = _canvasContainerWidth / imageX;
@@ -289,6 +308,9 @@ namespace Pic2PixelStylet.Pages
             }
             ImageLeft = (_canvasContainerWidth - imageX * ScaleFactor) / 2;
             ImageTop = (_canvasContainerHeight - imageY * ScaleFactor) / 2;
+            _imageSizeToCropAreaSizeRatio = OrigianlImage.Width * ScaleFactor / (_cropAreaWidth);
+            _imageLeftToCropAreaLeftRatio = (ImageLeft - CropLeft) / _cropAreaWidth;
+            _imageTopToCropAreaTopRatio = (ImageTop - CropTop) / _cropAreaHeight;
         }
 
         private void ResizeCropArea()

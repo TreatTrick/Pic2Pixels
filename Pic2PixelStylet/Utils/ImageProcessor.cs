@@ -15,18 +15,27 @@ namespace Pic2PixelStylet.Utils
 {
     internal static class ImageProcessor
     {
-        public static string GetFileHash(string filePath)
+        // 计算 BitmapSource 的 SHA256 哈希
+        public static string GetImageHash(BitmapSource bitmapSource)
         {
-            using (var sha256 = SHA256.Create())
-            using (var fileStream = File.OpenRead(filePath))
+            if (bitmapSource == null)
+                throw new ArgumentNullException(nameof(bitmapSource));
+
+            // 使用 PNG 编码器将 BitmapSource 转为内存流（也可改用其他编码器如 BmpBitmapEncoder）
+            var encoder = new PngBitmapEncoder();
+            encoder.Frames.Add(BitmapFrame.Create(bitmapSource));
+
+            using (var memoryStream = new MemoryStream())
             {
-                byte[] hashBytes = sha256.ComputeHash(fileStream);
-                StringBuilder hashStringBuilder = new StringBuilder();
-                foreach (byte b in hashBytes)
+                encoder.Save(memoryStream);
+                memoryStream.Position = 0; // 重置流位置
+
+                // 计算哈希
+                using (var sha256 = SHA256.Create())
                 {
-                    hashStringBuilder.Append(b.ToString("x2"));
+                    byte[] hashBytes = sha256.ComputeHash(memoryStream);
+                    return BytesToHexString(hashBytes);
                 }
-                return hashStringBuilder.ToString();
             }
         }
 
@@ -147,6 +156,17 @@ namespace Pic2PixelStylet.Utils
                     return new Bitmap(bitmap);
                 }
             }
+        }
+
+        // 辅助方法：将字节数组转为十六进制字符串
+        private static string BytesToHexString(byte[] bytes)
+        {
+            StringBuilder sb = new StringBuilder();
+            foreach (byte b in bytes)
+            {
+                sb.Append(b.ToString("x2")); // "x2" 表示两位小写十六进制
+            }
+            return sb.ToString();
         }
         #endregion
     }

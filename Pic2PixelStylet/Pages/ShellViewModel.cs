@@ -10,6 +10,7 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using Newtonsoft.Json;
+using Pic2PixelStylet.DbConnection;
 using Pic2PixelStylet.Utils;
 using Stylet;
 using Point = System.Windows.Point;
@@ -21,6 +22,7 @@ namespace Pic2PixelStylet.Pages
         #region Fields
         private CellInfo[,] _cells;
         private BitmapImage _originalImage;
+        private string _imageHash;
         private double _canvasContainerWidth;
         private double _canvasContainerHeight;
         private double _cropAreaWidth;
@@ -61,7 +63,11 @@ namespace Pic2PixelStylet.Pages
         public BitmapImage OriginalImage
         {
             get => _originalImage;
-            set { _originalImage = value; }
+            set
+            {
+                _originalImage = value;
+                _imageHash = ImageProcessor.GetImageHash(value);
+            }
         }
 
         public double CropAreaWidth
@@ -109,10 +115,28 @@ namespace Pic2PixelStylet.Pages
 
         public void SaveImage()
         {
-            if (_cells == null || _cells.Length == 0)
-                return;
-            Directory.CreateDirectory("CellInfo");
-            CellSerializer.SaveToFile(_cells, "d:/temp.json");
+            try
+            {
+                if (_cells == null || _cells.Length == 0)
+                    return;
+                string dirName = "CellInfo";
+                if (!Directory.Exists(dirName))
+                    Directory.CreateDirectory(dirName);
+
+                string uuid = Guid.NewGuid().ToString();
+                string fileName = Path.Combine(dirName, uuid + ".json");
+                CellSerializer.SaveToFile(_cells, fileName);
+                var pixelHistory = new PixelsHistory
+                {
+                    PictureHash = _imageHash,
+                    DataFilePath = fileName,
+                };
+                DbConnection.DbConnection.Db.Insertable(pixelHistory).ExecuteCommand();
+            }
+            catch (Exception e)
+            {
+                MessageBox.Show(e.ToString());
+            }
         }
 
         public void ImportImage(string path)

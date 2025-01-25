@@ -319,6 +319,9 @@
                                 </i:DataTrigger>
                             </i:Interaction.Triggers>
                         </Button>
+                        <Rectangle Height="1" Fill="{DynamicResource TextFillColorDisabledBrush}"></Rectangle>
+                        <Button Command="{s:Action SaveImage}" Content="保存" Style="{DynamicResource AccentButtonStyle}" 
+                                Visibility="{Binding IsCropped, Converter={StaticResource BoolToVisibilityConverter}}"></Button>
                     </StackPanel>
                 </Border>
             </ScrollViewer>

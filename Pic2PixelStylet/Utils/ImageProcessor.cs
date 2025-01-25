@@ -15,6 +15,21 @@ namespace Pic2PixelStylet.Utils
 {
     internal static class ImageProcessor
     {
+        public static string GetFileHash(string filePath)
+        {
+            using (var sha256 = SHA256.Create())
+            using (var fileStream = File.OpenRead(filePath))
+            {
+                byte[] hashBytes = sha256.ComputeHash(fileStream);
+                StringBuilder hashStringBuilder = new StringBuilder();
+                foreach (byte b in hashBytes)
+                {
+                    hashStringBuilder.Append(b.ToString("x2"));
+                }
+                return hashStringBuilder.ToString();
+            }
+        }
+
         public static BitmapSource ResizeBitmapSource(
             BitmapSource originalBitmap,
             double targetWidth,
@@ -131,21 +146,6 @@ namespace Pic2PixelStylet.Utils
                 {
                     return new Bitmap(bitmap);
                 }
-            }
-        }
-
-        static string GetFileHash(string filePath)
-        {
-            using (var sha256 = SHA256.Create())
-            using (var fileStream = File.OpenRead(filePath))
-            {
-                byte[] hashBytes = sha256.ComputeHash(fileStream);
-                StringBuilder hashStringBuilder = new StringBuilder();
-                foreach (byte b in hashBytes)
-                {
-                    hashStringBuilder.Append(b.ToString("x2"));
-                }
-                return hashStringBuilder.ToString();
             }
         }
         #endregion

@@ -10,12 +10,13 @@ namespace Pic2PixelStylet.Pages
 {
     public struct CellInfo
     {
-        public bool IsBlue;
+        public bool IsBlue { get; set; }
 
         [JsonIgnore]
         public Border CellBorder;
-        public int Row;
-        public int Column;
+
+        public int Row { get; set; }
+        public int Column { get; set; }
 
         public override string ToString()
         {

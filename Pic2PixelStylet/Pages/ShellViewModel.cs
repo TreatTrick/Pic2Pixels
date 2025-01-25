@@ -2,12 +2,14 @@
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Drawing;
+using System.IO;
 using System.Runtime.CompilerServices;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
+using Newtonsoft.Json;
 using Pic2PixelStylet.Utils;
 using Stylet;
 using Point = System.Windows.Point;
@@ -104,6 +106,15 @@ namespace Pic2PixelStylet.Pages
         #endregion
 
         #region PublicMethods
+
+        public void SaveImage()
+        {
+            if (_cells == null || _cells.Length == 0)
+                return;
+            Directory.CreateDirectory("CellInfo");
+            CellSerializer.SaveToFile(_cells, "d:/temp.json");
+        }
+
         public void ImportImage(string path)
         {
             OriginalImage = ImageProcessor.ConvertTo96DpiBitmapImage(path, out bool success);

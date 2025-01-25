@@ -7,7 +7,7 @@ using SqlSugar;
 
 namespace Pic2PixelStylet.DbConnection
 {
-    internal class PixelsHistory
+    public class PixelsHistory
     {
         [SugarColumn(IsPrimaryKey = true, IsIdentity = true)]
         public int Id { get; set; }

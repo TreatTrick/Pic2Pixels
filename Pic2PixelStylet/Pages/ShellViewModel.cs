@@ -33,11 +33,11 @@ namespace Pic2PixelStylet.Pages
         private double _imageLeftToCropAreaLeftRatio = 0;
         private double _imageTopToCropAreaTopRatio = 0;
         private double _imageSizeToCropAreaSizeRatio = 1;
+        private PixelsHistory _selectedCell;
+        private BindableCollection<PixelsHistory> _historyCells;
         #endregion
 
         #region properties
-        [Inject]
-        public IWindowManager WindowManager { get; set; }
         public string ErrorMessage { get; set; }
         public bool IsImagedLoaded => _originalImage != null;
         public double ScaleFactor { get; set; }
@@ -89,6 +89,18 @@ namespace Pic2PixelStylet.Pages
         {
             get => _cells;
             set { _cells = value; }
+        }
+
+        public PixelsHistory SelectedCell
+        {
+            get => _selectedCell;
+            set { _selectedCell = value; }
+        }
+
+        public BindableCollection<PixelsHistory> HistoryCells
+        {
+            get => _historyCells;
+            set { _historyCells = value; }
         }
         #endregion
 
@@ -142,6 +154,7 @@ namespace Pic2PixelStylet.Pages
                     ProjectName = projectName,
                 };
                 DbConnection.DbConnection.Db.Insertable(pixelHistory).ExecuteCommand();
+                LoadHistoryCells();
             }
             catch (Exception e)
             {
@@ -215,6 +228,20 @@ namespace Pic2PixelStylet.Pages
             }
         }
 
+        public void RemoveHistoryCommand(PixelsHistory history)
+        {
+            try
+            {
+                File.Delete(history.DataFilePath);
+            }
+            catch (Exception e)
+            {
+                MessageBox.Show(e.ToString());
+            }
+            DbConnection.DbConnection.Db.Deleteable(history).ExecuteCommand();
+            LoadHistoryCells();
+        }
+
         public void DragOverHasErrorChangeCommand(bool hasError)
         {
             HasError = hasError;
@@ -267,6 +294,19 @@ namespace Pic2PixelStylet.Pages
         #endregion
 
         #region PrivateMethods
+        private void LoadHistoryCells()
+        {
+            HistoryCells = new BindableCollection<PixelsHistory>();
+            var history = DbConnection
+                .DbConnection.Db.Queryable<PixelsHistory>()
+                .Where(x => x.PictureHash == _imageHash)
+                .OrderByDescending(x => x.DateTime)
+                .ToList();
+            foreach (var item in history)
+            {
+                HistoryCells.Add(item);
+            }
+        }
 
         private void InnerCropImage()
         {
@@ -356,6 +396,7 @@ namespace Pic2PixelStylet.Pages
             _imageSizeToCropAreaSizeRatio = OriginalImage.Width * ScaleFactor / (_cropAreaWidth);
             _imageLeftToCropAreaLeftRatio = (ImageLeft - CropLeft) / _cropAreaWidth;
             _imageTopToCropAreaTopRatio = (ImageTop - CropTop) / _cropAreaHeight;
+            LoadHistoryCells();
         }
 
         private void ResizeCropArea()

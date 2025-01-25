@@ -7,11 +7,17 @@
     </ApplicationDefinition>
   </ItemGroup>
   <ItemGroup>
+    <Compile Update="Pages\InputProjectNameDialog.xaml.cs">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Update="Pages\PixelGrid.xaml.cs">
       <SubType>Code</SubType>
     </Compile>
   </ItemGroup>
   <ItemGroup>
+    <Page Update="Pages\InputProjectNameDialog.xaml">
+      <SubType>Designer</SubType>
+    </Page>
     <Page Update="Pages\PixelGrid.xaml">
       <SubType>Designer</SubType>
     </Page>

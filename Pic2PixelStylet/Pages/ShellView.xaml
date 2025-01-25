@@ -319,9 +319,15 @@
                                 </i:DataTrigger>
                             </i:Interaction.Triggers>
                         </Button>
-                        <Rectangle Height="1" Fill="{DynamicResource TextFillColorDisabledBrush}"></Rectangle>
-                        <Button Command="{s:Action SaveImage}" Content="保存" Style="{DynamicResource AccentButtonStyle}" 
-                                Visibility="{Binding IsCropped, Converter={StaticResource BoolToVisibilityConverter}}"></Button>
+                        <Rectangle
+                            Height="1"
+                            Margin="0,5"
+                            Fill="{DynamicResource TextFillColorDisabledBrush}" />
+                        <Button
+                            Command="{s:Action SaveImage}"
+                            Content="保存当前项目"
+                            Style="{DynamicResource AccentButtonStyle}"
+                            Visibility="{Binding IsCropped, Converter={StaticResource BoolToVisibilityConverter}}" />
                     </StackPanel>
                 </Border>
             </ScrollViewer>

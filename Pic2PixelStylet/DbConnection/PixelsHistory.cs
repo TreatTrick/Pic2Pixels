@@ -13,6 +13,9 @@ namespace Pic2PixelStylet.DbConnection
         public int Id { get; set; }
 
         [SugarColumn(IsNullable = false)]
+        public string ProjectName { get; set; }
+
+        [SugarColumn(IsNullable = false)]
         public string PictureHash { get; set; }
 
         [SugarColumn(IsNullable = false)]

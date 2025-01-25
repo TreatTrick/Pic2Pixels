@@ -13,6 +13,7 @@ using Newtonsoft.Json;
 using Pic2PixelStylet.DbConnection;
 using Pic2PixelStylet.Utils;
 using Stylet;
+using StyletIoC;
 using Point = System.Windows.Point;
 
 namespace Pic2PixelStylet.Pages
@@ -35,6 +36,8 @@ namespace Pic2PixelStylet.Pages
         #endregion
 
         #region properties
+        [Inject]
+        public IWindowManager WindowManager { get; set; }
         public string ErrorMessage { get; set; }
         public bool IsImagedLoaded => _originalImage != null;
         public double ScaleFactor { get; set; }
@@ -119,6 +122,12 @@ namespace Pic2PixelStylet.Pages
             {
                 if (_cells == null || _cells.Length == 0)
                     return;
+                var dialog = new InputProjectNameDialog();
+                if (dialog.ShowDialog() != true)
+                {
+                    return;
+                }
+                string projectName = dialog.ProjectName;
                 string dirName = "CellInfo";
                 if (!Directory.Exists(dirName))
                     Directory.CreateDirectory(dirName);
@@ -130,6 +139,7 @@ namespace Pic2PixelStylet.Pages
                 {
                     PictureHash = _imageHash,
                     DataFilePath = fileName,
+                    ProjectName = projectName,
                 };
                 DbConnection.DbConnection.Db.Insertable(pixelHistory).ExecuteCommand();
             }

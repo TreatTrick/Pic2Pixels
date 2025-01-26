@@ -400,7 +400,7 @@
                         HorizontalAlignment="Center"
                         VerticalAlignment="Center"
                         FontSize="32"
-                        Text="将单张JPG或PNG图片拖动到此处"
+                        Text="将单张JPG或PNG图片拖动到此处，或将截图粘贴到此处"
                         Visibility="{Binding HasError, Mode=OneWay, Converter={StaticResource BoolToVisibilityConverter}, ConverterParameter=inverse}" />
                     <TextBlock
                         HorizontalAlignment="Center"

@@ -154,6 +154,9 @@ namespace Pic2PixelStylet.Pages
             e.Row.MouseLeave += DataGridRow_MouseLeave;
         }
 
+        public bool CanSaveImage =>
+            IsCropped && !string.IsNullOrEmpty(_imageHash) && _cells != null && _cells.Length > 0;
+
         public void SaveImage()
         {
             try

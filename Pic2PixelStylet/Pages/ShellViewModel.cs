@@ -22,6 +22,7 @@ namespace Pic2PixelStylet.Pages
     public class ShellViewModel : Screen
     {
         #region Fields
+        private const string _jsonSavedDirName = "CellInfo";
         private CellInfo[,] _cells;
         private BitmapImage _originalImage;
         private string _imageHash;
@@ -35,9 +36,12 @@ namespace Pic2PixelStylet.Pages
         private double _imageTopToCropAreaTopRatio = 0;
         private double _imageSizeToCropAreaSizeRatio = 1;
         private bool _isShowCurrenImageHistory = true;
+        private PixelsHistory _selectedCell;
         #endregion
 
         #region properties
+        [Inject]
+        IWindowManager WindowManager { get; set; }
         public bool IsShowPixelGridToolTip { get; set; } = false;
         public DataGridRow MouseOverGridRow { get; set; }
         public CellInfo[,] MouseOverCells { get; set; }
@@ -94,10 +98,18 @@ namespace Pic2PixelStylet.Pages
             set { _cells = value; }
         }
 
-        public PixelsHistory SelectedCell { get; set; }
+        public PixelsHistory SelectedCell
+        {
+            get => _selectedCell;
+            set
+            {
+                _selectedCell = value;
+                LoadSelectedCell();
+            }
+        }
 
         public BindableCollection<PixelsHistory> HistoryCells { get; set; }
-        public bool ShowCurrentImageHistory
+        public bool IsShowCurrentImageHistory
         {
             get => _isShowCurrenImageHistory;
             set
@@ -146,6 +158,10 @@ namespace Pic2PixelStylet.Pages
         {
             try
             {
+                if (!IsCropped || string.IsNullOrEmpty(_imageHash))
+                {
+                    return;
+                }
                 if (_cells == null || _cells.Length == 0)
                     return;
                 var dialog = new InputProjectNameDialog();
@@ -154,12 +170,11 @@ namespace Pic2PixelStylet.Pages
                     return;
                 }
                 string projectName = dialog.ProjectName;
-                string dirName = "CellInfo";
-                if (!Directory.Exists(dirName))
-                    Directory.CreateDirectory(dirName);
+                if (!Directory.Exists(_jsonSavedDirName))
+                    Directory.CreateDirectory(_jsonSavedDirName);
 
                 string uuid = Guid.NewGuid().ToString();
-                string fileName = Path.Combine(dirName, uuid + ".json");
+                string fileName = Path.Combine(_jsonSavedDirName, uuid + ".json");
                 CellSerializer.SaveToFile(_cells, fileName);
                 var pixelHistory = new PixelsHistory
                 {
@@ -256,10 +271,33 @@ namespace Pic2PixelStylet.Pages
             }
         }
 
+        public bool CanClearHistoryCommand
+        {
+            get
+            {
+                if (_isShowCurrenImageHistory)
+                {
+                    return DbConnection
+                        .DbConnection.Db.Queryable<PixelsHistory>()
+                        .Any(it => it.PictureHash == _imageHash);
+                }
+                else
+                {
+                    return DbConnection.DbConnection.Db.Queryable<PixelsHistory>().Any();
+                }
+            }
+        }
+
         public void ClearHistoryCommand()
         {
             try
             {
+                var dialog = new QuestionDialog();
+                dialog.ShowContent = "确定要清空历史记录吗？";
+                if (dialog.ShowDialog() != true)
+                {
+                    return;
+                }
                 if (_isShowCurrenImageHistory)
                 {
                     foreach (var item in HistoryCells)
@@ -271,7 +309,7 @@ namespace Pic2PixelStylet.Pages
                 }
                 else
                 {
-                    Directory.Delete("CellInfo", true);
+                    Directory.Delete(_jsonSavedDirName, true);
                     DbConnection
                         .DbConnection.Db.Deleteable<PixelsHistory>()
                         .Where(it => true)
@@ -319,6 +357,16 @@ namespace Pic2PixelStylet.Pages
             ImageTop += offsetPoint.Y;
             _imageLeftToCropAreaLeftRatio = (ImageLeft - CropLeft) / _cropAreaWidth;
             _imageTopToCropAreaTopRatio = (ImageTop - CropTop) / _cropAreaHeight;
+        }
+
+        public bool CanShowHistoryCommand =>
+            DbConnection.DbConnection.Db.Queryable<PixelsHistory>().Any();
+
+        public void ShowHistoryCommand()
+        {
+            IsCropped = true;
+            HasImage = true;
+            IsShowCurrentImageHistory = false;
         }
 
         public void CropImage()
@@ -459,6 +507,23 @@ namespace Pic2PixelStylet.Pages
             ImageTop = CropTop + _imageTopToCropAreaTopRatio * _cropAreaHeight;
         }
 
+        private void LoadSelectedCell()
+        {
+            try
+            {
+                if (SelectedCell == null)
+                {
+                    return;
+                }
+                IsCropped = true;
+                Cells = CellSerializer.LoadFromFile(SelectedCell.DataFilePath);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.ToString());
+            }
+        }
+
         private void InitialImage()
         {
             if (OriginalImage == null)
@@ -475,7 +540,7 @@ namespace Pic2PixelStylet.Pages
             }
             ImageLeft = (_canvasContainerWidth - imageX * ScaleFactor) / 2;
             ImageTop = (_canvasContainerHeight - imageY * ScaleFactor) / 2;
-
+            IsCropped = false;
             _imageSizeToCropAreaSizeRatio = OriginalImage.Width * ScaleFactor / (_cropAreaWidth);
             _imageLeftToCropAreaLeftRatio = (ImageLeft - CropLeft) / _cropAreaWidth;
             _imageTopToCropAreaTopRatio = (ImageTop - CropTop) / _cropAreaHeight;

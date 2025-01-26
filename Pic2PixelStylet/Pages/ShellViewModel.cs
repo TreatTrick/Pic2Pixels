@@ -178,7 +178,13 @@ namespace Pic2PixelStylet.Pages
 
                 string uuid = Guid.NewGuid().ToString();
                 string fileName = Path.Combine(_jsonSavedDirName, uuid + ".json");
-                CellSerializer.SaveToFile(_cells, fileName);
+                CellsWrapper wrapper = new CellsWrapper(
+                    _cells,
+                    _imageSizeToCropAreaSizeRatio,
+                    _imageLeftToCropAreaLeftRatio,
+                    _imageTopToCropAreaTopRatio
+                );
+                CellSerializer.SaveToFile(wrapper, fileName);
                 var pixelHistory = new PixelsHistory
                 {
                     PictureHash = _imageHash,
@@ -402,7 +408,8 @@ namespace Pic2PixelStylet.Pages
                 if (pixelHistory == null)
                     return;
 
-                MouseOverCells = CellSerializer.LoadFromFile(pixelHistory.DataFilePath);
+                var wrapper = CellSerializer.LoadFromFile(pixelHistory.DataFilePath);
+                MouseOverCells = wrapper.GetCellInfos();
                 IsShowPixelGridToolTip = true;
             }
             catch (Exception ex)
@@ -519,7 +526,18 @@ namespace Pic2PixelStylet.Pages
                     return;
                 }
                 IsCropped = true;
-                Cells = CellSerializer.LoadFromFile(SelectedCell.DataFilePath);
+                var wrapper = CellSerializer.LoadFromFile(SelectedCell.DataFilePath);
+                Cells = wrapper.GetCellInfos();
+                _imageLeftToCropAreaLeftRatio = wrapper.ImageLeftToCropAreaLeftRatio;
+                _imageTopToCropAreaTopRatio = wrapper.ImageTopToCropAreaTopRatio;
+                _imageSizeToCropAreaSizeRatio = wrapper.ImageSizeToCropAreaSizeRatio;
+
+                if (OriginalImage == null)
+                    return;
+
+                ScaleFactor = _imageSizeToCropAreaSizeRatio * _cropAreaWidth / OriginalImage.Width;
+                ImageLeft = CropLeft + _imageLeftToCropAreaLeftRatio * _cropAreaWidth;
+                ImageTop = CropTop + _imageTopToCropAreaTopRatio * _cropAreaHeight;
             }
             catch (Exception ex)
             {

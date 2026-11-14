@@ -44,5 +44,7 @@ jobs:
           body: |
             Initial tagged release of Pic2Pixels.
 
-            Download `Pic2Pixels-win-x64.zip`, extract it, and run `Pic2PixelStylet.exe`. The package is self-contained and includes the Windows x64 application runtime.
-          files: Pic2Pixels-win-x64.zip
+            Download `Pic2PixelStylet.exe` to run the app directly, or choose `Pic2Pixels-win-x64.zip`. Both options are self-contained and include the Windows x64 application runtime.
+          files: |
+            Pic2Pixels-win-x64.zip
+            publish/Pic2PixelStylet.exe

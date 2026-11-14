@@ -27,7 +27,7 @@ The current app creates an editable blue-and-white grid for visual reference. It
 
 ## Download
 
-Download the latest **Windows x64** package from [GitHub Releases](https://github.com/TreatTrick/Pic2Pixels/releases/latest), extract the ZIP, and run `Pic2PixelStylet.exe`. The release package is self-contained and does not require a separate .NET installation.
+Download the standalone `Pic2PixelStylet.exe` or the ZIP package from [GitHub Releases](https://github.com/TreatTrick/Pic2Pixels/releases/latest). The executable is self-contained and does not require a separate .NET installation.
 
 ## Use the app
 
@@ -99,7 +99,7 @@ Pic2Pixels is released under the [MIT License](LICENSE).
 
 ### 下载和运行
 
-从 [GitHub Releases](https://github.com/TreatTrick/Pic2Pixels/releases/latest) 下载最新的 **Windows x64** ZIP，解压后运行 `Pic2PixelStylet.exe`。发布包自带运行时，无需单独安装 .NET。
+从 [GitHub Releases](https://github.com/TreatTrick/Pic2Pixels/releases/latest) 下载独立的 `Pic2PixelStylet.exe`，或下载 ZIP 后解压运行。程序自带运行时，无需单独安装 .NET。
 
 ### 从源码构建
 

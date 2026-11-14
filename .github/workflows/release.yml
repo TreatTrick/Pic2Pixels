@@ -1,0 +1,48 @@
+name: Build and publish release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: windows-latest
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Set up .NET 9
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 9.0.x
+
+      - name: Publish self-contained Windows x64 app
+        shell: pwsh
+        run: |
+          $version = $env:GITHUB_REF_NAME -replace "^v", ""
+          dotnet publish Pic2PixelStylet/Pic2PixelStylet.csproj `
+            --configuration Release `
+            --runtime win-x64 `
+            --self-contained true `
+            --output publish `
+            "-p:Version=$version" `
+            -p:PublishSingleFile=true `
+            -p:IncludeNativeLibrariesForSelfExtract=true
+
+      - name: Package release ZIP
+        shell: pwsh
+        run: Compress-Archive -Path "publish/*" -DestinationPath "Pic2Pixels-win-x64.zip"
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          name: Pic2Pixels ${{ github.ref_name }}
+          body: |
+            Initial tagged release of Pic2Pixels.
+
+            Download `Pic2Pixels-win-x64.zip`, extract it, and run `Pic2PixelStylet.exe`. The package is self-contained and includes the Windows x64 application runtime.
+          files: Pic2Pixels-win-x64.zip

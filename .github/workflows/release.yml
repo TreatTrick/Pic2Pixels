@@ -4,7 +4,6 @@ on:
   push:
     tags:
       - "v*"
-  workflow_dispatch: {}
 
 permissions:
   contents: write
@@ -24,9 +23,6 @@ jobs:
       - name: Publish self-contained Windows x64 app
         shell: pwsh
         run: |
-          if ($env:GITHUB_REF_NAME -notmatch '^v\d+\.\d+\.\d+([-.+].+)?$') {
-            throw "Run this workflow from a version tag such as v2.0.0."
-          }
           $version = $env:GITHUB_REF_NAME -replace "^v", ""
           dotnet publish Pic2PixelStylet/Pic2PixelStylet.csproj `
             --configuration Release `
